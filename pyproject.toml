@@ -1,0 +1,15 @@
+[project]
+name = "semantic-search-app"
+version = "0.1.0"
+description = "Semantic search app powered by open IBM's embedding models"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+    "./services/model_service",
+    "./services/document_service",
+    "./services/search_service",
+    "./services/gateway_service",
+]

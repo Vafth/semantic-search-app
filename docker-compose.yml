@@ -1,0 +1,124 @@
+services:
+
+  qdrant:
+    image: qdrant/qdrant:v1.17.0
+    container_name: qdrant
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+      - "${DB_GRPC_PORT}:${DB_GRPC_PORT}"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - backend
+    environment:
+      - QDRANT__TELEMETRY_DISABLED=true
+      - QDRANT__SERVICE__MAX_WORKERS=2
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/${DB_PORT}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  gateway:
+    build:
+      context: ./services/gateway_service
+    image: semantic-search-gateway:latest
+    container_name: gateway
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+    networks:
+      - backend
+    environment:
+      DOC_SERVICE_URL:    ${DOCUMENT_SERVICE_URL}
+      SEARCH_SERVICE_URL: ${SEARCH_SERVICE_URL}
+    depends_on:
+      document-service:
+        condition: service_healthy
+      search-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${GATEWAY_PORT}/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  model-service:
+    build:
+      context: ./services/model_service
+    image: semantic-search-model-service:latest
+    container_name: model-service
+    ports:
+      - "${MODEL_SERVICE_PORT}:${MODEL_SERVICE_PORT}"
+    networks:
+      - backend
+    environment:
+      - HF_HOME=/app/.cache/huggingface
+      - TRANSFORMERS_OFFLINE=1 #0
+      - HF_DATASETS_OFFLINE=1  #0
+    volumes:
+      - hf_cache:/app/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${MODEL_SERVICE_PORT}/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  document-service:
+    build:
+      context: ./services/document_service
+    image: semantic-search-document-service:latest
+    container_name: document-service
+    ports:
+      - "${DOCUMENT_SERVICE_PORT}:${DOCUMENT_SERVICE_PORT}"
+    networks:
+      - backend
+    environment:
+      MODEL_SERVICE_URL: ${MODEL_SERVICE_URL}
+      DB_HOST:           ${DB_HOST}
+      DB_PORT:           ${DB_PORT}
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      model-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${DOCUMENT_SERVICE_PORT}/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  search-service:
+    build:
+      context: ./services/search_service
+    image: semantic-search-search-service:latest
+    container_name: search-service
+    ports:
+      - "${SEARCH_SERVICE_PORT}:${SEARCH_SERVICE_PORT}"
+    networks:
+      - backend
+    env_file:
+      - .env
+    environment:
+      MODEL_SERVICE_URL: ${MODEL_SERVICE_URL}
+      DB_HOST:           ${DB_HOST}
+      DB_PORT:           ${DB_PORT}
+    depends_on:
+      qdrant:
+        condition: service_healthy
+      model-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${SEARCH_SERVICE_PORT}/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  qdrant_data:
+  hf_cache:

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-service
+  template:
+    metadata:
+      labels:
+        app: model-service
+    spec:
+      containers:
+        - name: model-service
+          image: 703-model-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TRANSFORMERS_OFFLINE
+              value: "0"
+            - name: HF_DATASETS_OFFLINE
+              value: "0"
+            - name: HF_HOME
+              value: "/app/.cache/huggingface"
+          volumeMounts:
+            - name: hf-cache
+              mountPath: /app/.cache/huggingface
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 90
+            periodSeconds: 30
+      volumes:
+        - name: hf-cache
+          persistentVolumeClaim:
+            claimName: hf-cache-pvc

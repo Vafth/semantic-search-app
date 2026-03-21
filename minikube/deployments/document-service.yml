@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: document-service
+  template:
+    metadata:
+      labels:
+        app: document-service
+    spec:
+      containers:
+        - name: document-service
+          image: 703-document-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: services-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 40
+            periodSeconds: 15

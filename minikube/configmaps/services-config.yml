@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: 
+  name: services-config
+data:
+  DB_HOST:              "qdrant"
+  DB_PORT:              "6333"
+  MODEL_SERVICE_URL:    "http://model-service:8000"
+  DOCUMENT_SERVICE_URL: "http://document-service:8001"
+  SEARCH_SERVICE_URL:   "http://search-service:8002"
