@@ -23,15 +23,15 @@ Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
 │     (serves frontend)       │
 └──────────────┬──────────────┘
                │
-       ┌───────┴────────┐
-       │                │
-       ▼                ▼
-┌─────────────┐  ┌─────────────┐
-│  Document   │  │   Search    │
-│  Service    │  │   Service   │
-│   :8001     │  │   :8002     │
-└──────┬──────┘  └──────┬──────┘
-       │                │
+       ┌───────┴─────────┐
+       │                 │
+       ▼                 ▼
+┌─────────────┐  ┌──────────────┐
+│  Document   │  │    Search    │
+│  Service    │  │    Service   │
+│   :8001     │  │    :8002     │
+└──────┬──────┘  └───────┬──────┘
+       │                 │
        └───────┬─────────┘
                │
                ▼
