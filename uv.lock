@@ -10,17 +10,12 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "703",
     "document-service",
     "gateway-service",
     "model-service",
     "search-service",
+    "semantic-search-app",
 ]
-
-[[package]]
-name = "703"
-version = "0.1.0"
-source = { virtual = "." }
 
 [[package]]
 name = "annotated-doc"
@@ -1274,6 +1269,11 @@ requires-dist = [
     { name = "qdrant-client" },
     { name = "uvicorn" },
 ]
+
+[[package]]
+name = "semantic-search-app"
+version = "0.1.0"
+source = { virtual = "." }
 
 [[package]]
 name = "sentence-transformers"
