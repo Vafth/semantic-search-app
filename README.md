@@ -3,8 +3,7 @@
 Experimental prototype of a semantic search app using IBM Granite embedding models.
 
 A microservices-based vector search engine that indexes `.txt` documents and retrieves 
-relevant content using dense embeddings. The project is a foundation for a future RAG 
-pipeline with a lightweight LLM answer generation layer planned as a next milestone.
+relevant content using dense embeddings.
 
 Supports three IBM Granite embedding models (small English, normal English, multilingual),
 optional sentence-level result refinement, and deep search for borderline chunks.
@@ -29,7 +28,7 @@ Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
 ┌─────────────┐  ┌──────────────┐
 │  Document   │  │    Search    │
 │  Service    │  │    Service   │
-│   :8001     │  │    :8002     │
+│   :8001     │  │     :8002    │
 └──────┬──────┘  └───────┬──────┘
        │                 │
        └───────┬─────────┘
@@ -268,7 +267,6 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 ## Roadmap
 
 - [x] **v0.1.0**
-  - Microservices architecture (FastAPI)
   - Vector search with 3 IBM Granite embedding models
   - Result refinement and deep search
   - Docker Compose deployment
