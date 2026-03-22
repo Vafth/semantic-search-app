@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: search-service
-          image: 703-search-service:latest
+          image: semantic-search-search-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8002

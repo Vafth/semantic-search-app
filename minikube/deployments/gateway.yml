@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: 703-gateway:latest
+          image: semantic-search-gateway:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080

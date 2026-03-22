@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: model-service
-          image: 703-model-service:latest
+          image: semantic-search-model-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8000
