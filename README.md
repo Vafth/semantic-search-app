@@ -132,49 +132,21 @@ Access the app at `http://localhost:8080`.
 minikube start --cpus 4 --memory 6144
 ```
 
-### Load images
-
 <details>
 
 <summary>PowerShell</summary>
+
+### Load images
 
 ```powershell
 .\scripts\ps1\load-images.ps1
 ```
 
-</details>
-
-<details>
-
-<summary>bash</summary>
-
-```bash
-bash ./scripts/sh/load-images.sh
-```
-
-</details>
-
 ### Deploy
-
-<details>
-
-<summary>PowerShell</summary>
 
 ```powershell
 .\scripts\ps1\deploy.ps1
 ```
-
-</details>
-
-<details>
-
-<summary>bash</summary>
-
-```bash
-bash ./scripts/sh/deploy.sh
-```
-
-</details>
 
 ### Access
 
@@ -194,6 +166,7 @@ Then open `http://localhost:8080` in your browser.
 <details>
 
 <summary>Service URL</summary>
+
 ```bash
 minikube service gateway --url
 ```
@@ -204,10 +177,6 @@ Open the returned URL in your browser.
 
 ### Reset cluster
 
-<details>
-
-<summary>PowerShell</summary>
-
 ```powershell
 .\scripts\ps1\reset-minikube.ps1
 ```
@@ -217,6 +186,47 @@ Open the returned URL in your browser.
 <details>
 
 <summary>bash</summary>
+
+### Load images
+
+```bash
+bash ./scripts/sh/load-images.sh
+```
+
+### Deploy
+
+```bash
+bash ./scripts/sh/deploy.sh
+```
+
+### Access
+
+<details>
+
+<summary>Tunnel</summary>
+
+Run in a separate terminal:
+```bash
+minikube tunnel
+```
+
+Then open `http://localhost:8080` in your browser.
+
+</details>
+
+<details>
+
+<summary>Service URL</summary>
+
+```bash
+minikube service gateway --url
+```
+
+Open the returned URL in your browser.
+
+</details>
+
+### Reset cluster
 
 ```bash
 bash ./scripts/sh/reset-minikube.sh
