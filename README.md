@@ -25,11 +25,11 @@ Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
        ┌───────┴─────────┐
        │                 │
        ▼                 ▼
-┌─────────────┐  ┌──────────────┐
-│  Document   │  │    Search    │
-│  Service    │  │    Service   │
-│   :8001     │  │     :8002    │
-└──────┬──────┘  └───────┬──────┘
+┌─────────────┐  ┌─────────────┐
+│  Document   │  │   Search    │
+│  Service    │  │   Service   │
+│   :8001     │  │    :8002    │
+└──────┬──────┘  └───────┬─────┘
        │                 │
        └───────┬─────────┘
                │
@@ -93,25 +93,15 @@ The `.env` file is used by Docker Compose. For Minikube, configuration is manage
 
 ### Build
 
-<details>
-
-<summary>PowerShell</summary>
-
+#### PowerShell
 ```powershell
 .\scripts\ps1\build.ps1
 ```
 
-</details>
-
-<details>
-
-<summary>bash</summary>
-
+#### bash
 ```bash
 bash ./scripts/sh/build.sh
 ```
-
-</details>
 
 ### Run
 
@@ -149,30 +139,11 @@ minikube start --cpus 4 --memory 6144
 
 ### Access
 
-<details>
-
-<summary>Tunnel</summary>
-
-Run in a separate terminal:
 ```bash
 minikube tunnel
 ```
 
 Then open `http://localhost:8080` in your browser.
-
-</details>
-
-<details>
-
-<summary>Service URL</summary>
-
-```bash
-minikube service gateway --url
-```
-
-Open the returned URL in your browser.
-
-</details>
 
 ### Reset cluster
 
@@ -200,30 +171,11 @@ bash ./scripts/sh/deploy.sh
 
 ### Access
 
-<details>
-
-<summary>Tunnel</summary>
-
-Run in a separate terminal:
 ```bash
 minikube tunnel
 ```
 
 Then open `http://localhost:8080` in your browser.
-
-</details>
-
-<details>
-
-<summary>Service URL</summary>
-
-```bash
-minikube service gateway --url
-```
-
-Open the returned URL in your browser.
-
-</details>
 
 ### Reset cluster
 
