@@ -8,3 +8,4 @@ data:
   MODEL_SERVICE_URL:    "http://model-service:8000"
   DOCUMENT_SERVICE_URL: "http://document-service:8001"
   SEARCH_SERVICE_URL:   "http://search-service:8002"
+  GATEWAY_URL:          "http://localhost:8080"

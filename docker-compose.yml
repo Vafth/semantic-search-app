@@ -22,7 +22,8 @@ services:
 
   gateway:
     build:
-      context: ./services/gateway_service
+      context: .
+      dockerfile: services/gateway_service/Dockerfile
     image: semantic-search-gateway:latest
     container_name: gateway
     ports:
@@ -32,6 +33,7 @@ services:
     environment:
       DOC_SERVICE_URL:    ${DOCUMENT_SERVICE_URL}
       SEARCH_SERVICE_URL: ${SEARCH_SERVICE_URL}
+      GATEWAY_URL:        ${GATEWAY_URL}
     depends_on:
       document-service:
         condition: service_healthy
@@ -42,14 +44,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   model-service:
     build:
       context: ./services/model_service
     image: semantic-search-model-service:latest
     container_name: model-service
-    ports:
-      - "${MODEL_SERVICE_PORT}:${MODEL_SERVICE_PORT}"
     networks:
       - backend
     environment:
@@ -70,8 +71,6 @@ services:
       context: ./services/document_service
     image: semantic-search-document-service:latest
     container_name: document-service
-    ports:
-      - "${DOCUMENT_SERVICE_PORT}:${DOCUMENT_SERVICE_PORT}"
     networks:
       - backend
     environment:
@@ -94,8 +93,6 @@ services:
       context: ./services/search_service
     image: semantic-search-search-service:latest
     container_name: search-service
-    ports:
-      - "${SEARCH_SERVICE_PORT}:${SEARCH_SERVICE_PORT}"
     networks:
       - backend
     env_file:

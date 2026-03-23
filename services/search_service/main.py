@@ -175,7 +175,7 @@ async def filter_chunk_to_relevant_sentences(
     query:      str,
     chunk_text: str,
     model_name: str,
-    min_score:  float = DEF_MIN_SCORE - DEF_MIN_DIF,
+    min_score:  float = DEF_MIN_SCORE + DEF_MIN_DIF,
 ) -> str:
     
     sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', chunk_text) if len(s.strip()) > 10]

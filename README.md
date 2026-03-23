@@ -248,7 +248,7 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 | `top_k` | `5` | Number of results |
 | `score` | `0.4` | Minimum similarity score |
 | `refine` | `false` | Filter irrelevant sentences within chunks |
-| `dif` | `0.05` | Sentence score threshold = score − dif |
+| `dif` | `0.05` | Sentence score threshold = score + dif |
 | `deep` | `false` | Scan borderline chunks at sentence level |
 | `deep_min` | `0.25` | Lower bound for borderline chunks |
 | `document_ids` | none | Comma-separated list of document IDs to search within |
@@ -258,7 +258,7 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 ## Roadmap
 
 - [*] **v0.1.0**
-  - Microservices architecture (FastAPI)
+  - Microservices architecture
   - Vector search with 3 IBM Granite embedding models
   - Result refinement and deep search
   - Docker Compose deployment
@@ -266,11 +266,11 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 
 - [ ] **v0.2.0**
   - Test suite
-  - CI/CD pipeline (GitHub Actions / GitLab CI)
+  - CI/CD pipeline
 
 - [ ] **v0.3.0**
-  - Centralized logging with Loki + Grafana
-  - LLM answer generation layer (full RAG pipeline)
+  - Complete logging system
+  - LLM agent layer (full RAG pipeline)
 
 ---
 
