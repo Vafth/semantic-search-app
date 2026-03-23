@@ -218,7 +218,7 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 
 ## Roadmap
 
-- [*] **v0.1.0**
+- [x] **v0.1.0**
   - Microservices architecture
   - Vector search with 3 IBM Granite embedding models
   - Result refinement and deep search
