@@ -3,8 +3,7 @@
 Experimental prototype of a semantic search app using IBM Granite embedding models.
 
 A microservices-based vector search engine that indexes `.txt` documents and retrieves 
-relevant content using dense embeddings. The project is a foundation for a future RAG 
-pipeline with a lightweight LLM answer generation layer planned as a next milestone.
+relevant content using dense embeddings.
 
 Supports three IBM Granite embedding models (small English, normal English, multilingual),
 optional sentence-level result refinement, and deep search for borderline chunks.
@@ -23,15 +22,15 @@ Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
 │     (serves frontend)       │
 └──────────────┬──────────────┘
                │
-       ┌───────┴────────┐
-       │                │
-       ▼                ▼
-┌─────────────┐  ┌─────────────┐
-│  Document   │  │   Search    │
-│  Service    │  │   Service   │
-│   :8001     │  │   :8002     │
-└──────┬──────┘  └──────┬──────┘
-       │                │
+       ┌───────┴─────────┐
+       │                 │
+       ▼                 ▼
+┌─────────────┐  ┌──────────────┐
+│  Document   │  │    Search    │
+│  Service    │  │    Service   │
+│   :8001     │  │     :8002    │
+└──────┬──────┘  └───────┬──────┘
+       │                 │
        └───────┬─────────┘
                │
                ▼
@@ -132,49 +131,21 @@ Access the app at `http://localhost:8080`.
 minikube start --cpus 4 --memory 6144
 ```
 
-### Load images
-
 <details>
 
 <summary>PowerShell</summary>
+
+### Load images
 
 ```powershell
 .\scripts\ps1\load-images.ps1
 ```
 
-</details>
-
-<details>
-
-<summary>bash</summary>
-
-```bash
-bash ./scripts/sh/load-images.sh
-```
-
-</details>
-
 ### Deploy
-
-<details>
-
-<summary>PowerShell</summary>
 
 ```powershell
 .\scripts\ps1\deploy.ps1
 ```
-
-</details>
-
-<details>
-
-<summary>bash</summary>
-
-```bash
-bash ./scripts/sh/deploy.sh
-```
-
-</details>
 
 ### Access
 
@@ -194,6 +165,7 @@ Then open `http://localhost:8080` in your browser.
 <details>
 
 <summary>Service URL</summary>
+
 ```bash
 minikube service gateway --url
 ```
@@ -204,10 +176,6 @@ Open the returned URL in your browser.
 
 ### Reset cluster
 
-<details>
-
-<summary>PowerShell</summary>
-
 ```powershell
 .\scripts\ps1\reset-minikube.ps1
 ```
@@ -217,6 +185,47 @@ Open the returned URL in your browser.
 <details>
 
 <summary>bash</summary>
+
+### Load images
+
+```bash
+bash ./scripts/sh/load-images.sh
+```
+
+### Deploy
+
+```bash
+bash ./scripts/sh/deploy.sh
+```
+
+### Access
+
+<details>
+
+<summary>Tunnel</summary>
+
+Run in a separate terminal:
+```bash
+minikube tunnel
+```
+
+Then open `http://localhost:8080` in your browser.
+
+</details>
+
+<details>
+
+<summary>Service URL</summary>
+
+```bash
+minikube service gateway --url
+```
+
+Open the returned URL in your browser.
+
+</details>
+
+### Reset cluster
 
 ```bash
 bash ./scripts/sh/reset-minikube.sh
