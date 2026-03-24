@@ -9,43 +9,89 @@ Supports three IBM Granite embedding models (small English, normal English, mult
 optional sentence-level result refinement, and deep search for borderline chunks.
 Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
 
+## Usage Example
+
+### Test Document
+
+`docs/test.txt` - document provided for quick testing 
+> Source: [Apollo 11 — Wikipedia](https://en.wikipedia.org/wiki/Apollo_11)
+
+---
+
+### Step-by-step Guide
+
+**1. Open the app in your browser**
+
+Navigate to `http://localhost:8080`.
+
+**2. Upload the document**
+
+Click **Choose File**, select `test.txt`, then click **Upload**.
+
+![Upload document](docs/screenshots/upload.png)
+
+**3. Wait for embedding to complete**
+
+The document will be indexed across all three embedding models. For a small document this takes 10–20 seconds. A larger document (200+ chunks) may take several minutes.
+
+![Document list after upload](docs/screenshots/document-list.png)
+
+**4. Render the document**
+
+Click the **Render** button next to the document name to display the full text. After a search, matched sentences will be highlighted in yellow.
+
+![Document render](docs/screenshots/document-render.png)
+
+**5. Configure search parameters**
+
+Fill in the search query and adjust parameters as needed:
+
+| Parameter | Suggested value | Notes |
+|---|---|---|
+| Query | `nations competing to be first in space` | Try in other languages too with the multilingual model |
+| Model | `small_model` | Fastest for testing |
+| Top K | `3` | Number of results |
+| Score Threshold | `0.6` | Lower = more results |
+
+**6. Run the search**
+
+Click **Search** and wait for results. Each result shows the similarity score, chunk index, and source filename.
+
+![Search results](docs/screenshots/search-results1.png)
+![Search results](docs/screenshots/search-results2.png)
+
 ## Architecture
 
 ```
-┌─────────────────────────────┐
-│           Browser           │
-└──────────────┬──────────────┘
-               │ HTTP :8080
-               ▼
-┌─────────────────────────────┐
-│         API Gateway         │
-│     (serves frontend)       │
-└──────────────┬──────────────┘
-               │
-       ┌───────┴─────────┐
-       │                 │
-       ▼                 ▼
-┌─────────────┐  ┌─────────────┐
-│  Document   │  │   Search    │
-│  Service    │  │   Service   │
-│   :8001     │  │    :8002    │
-└──────┬──────┘  └───────┬─────┘
-       │                 │
-       └───────┬─────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│        Model Service        │
-│    IBM Granite Embeddings   │
-│          :8000              │
-└──────────────┬──────────────┘
-               │
-               ▼
-┌─────────────────────────────┐
-│           Qdrant            │
-│      Vector Database        │
-│          :6333              │
-└─────────────────────────────┘
+                  ┌─────────────────────────────┐
+                  │           Browser           │
+                  └──────────────┬──────────────┘
+                                 │ HTTP :8080
+                                 ▼
+                  ┌─────────────────────────────┐
+                  │         API Gateway         │
+                  │      (serves frontend)      │
+                  └──────────────┬──────────────┘
+                                 │
+                       ┌─────────┴───────────┐
+                       │                     │
+                       ▼                     ▼
+                 ┌─────────────┐     ┌──────────────┐
+                 │  Document   │     │    Search    │
+                 │  Service    │     │    Service   │
+                 │   :8001     │     │     :8002    │
+                 └─────┬───────┘     └───────┬──────┘
+                       │                     │
+                       └──────────┬──────────┘
+                                  │
+                                  │
+                ┌─────────────────┴─────────────────┐
+                ▼                                   ▼
+┌─────────────────────────────┐     ┌─────────────────────────────┐
+│        Model Service        │     │           Qdrant            │
+│    IBM Granite Embeddings   │ ──► │       Vector Database       │
+│          :8000              │     │          :6333              │
+└─────────────────────────────┘     └─────────────────────────────┘
 ```
 
 ### Services
@@ -70,8 +116,8 @@ Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
 
 ## Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [uv](https://github.com/astral-sh/uv) — Python package manager
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Minikube](https://minikube.sigs.k8s.io/) _(for Kubernetes deployment)_
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) _(for Kubernetes deployment)_
 
@@ -85,7 +131,8 @@ Copy `.env.example` to `.env` and fill in the values:
 cp .env.example .env
 ```
 
-The `.env` file is used by Docker Compose. For Minikube, configuration is managed via `minikube/configmaps/services-config.yml`.
+The `.env` file is used by Docker Compose. 
+For Minikube, configuration is managed via `minikube/configmaps/services-config.yml`.
 
 ---
 
@@ -93,12 +140,12 @@ The `.env` file is used by Docker Compose. For Minikube, configuration is manage
 
 ### Build
 
-#### PowerShell
+**PowerShell**
 ```powershell
 .\scripts\ps1\build.ps1
 ```
 
-#### bash
+**bash**
 ```bash
 bash ./scripts/sh/build.sh
 ```
@@ -218,7 +265,7 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 
 ## Roadmap
 
-- [*] **v0.1.0**
+- [x] **v0.1.0**
   - Microservices architecture
   - Vector search with 3 IBM Granite embedding models
   - Result refinement and deep search
