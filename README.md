@@ -53,6 +53,8 @@ Fill in the search query and adjust parameters as needed:
 | Top K | `3` | Number of results |
 | Score Threshold | `0.6` | Lower = more results |
 
+![Search results](docs/screenshots/search-params.png)
+
 **6. Run the search**
 
 Click **Search** and wait for results. Each result shows the similarity score, chunk index, and source filename.
