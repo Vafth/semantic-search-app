@@ -91,7 +91,7 @@ Click **Search** and wait for results. Each result shows the similarity score, c
                 ▼                                   ▼
 ┌─────────────────────────────┐     ┌─────────────────────────────┐
 │        Model Service        │     │           Qdrant            │
-│    IBM Granite Embeddings   │ ──► │       Vector Database       │
+│    IBM Granite Embeddings   │     │       Vector Database       │
 │          :8000              │     │          :6333              │
 └─────────────────────────────┘     └─────────────────────────────┘
 ```
