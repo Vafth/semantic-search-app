@@ -1,11 +1,30 @@
 services:
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d project_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   qdrant:
     image: qdrant/qdrant:v1.17.0
     container_name: qdrant
     ports:
-      - "${DB_PORT}:${DB_PORT}"
-      - "${DB_GRPC_PORT}:${DB_GRPC_PORT}"
+      - "${QDRANT_PORT}:${QDRANT_PORT}"
     volumes:
       - qdrant_data:/qdrant/storage
     networks:
@@ -14,41 +33,16 @@ services:
       - QDRANT__TELEMETRY_DISABLED=true
       - QDRANT__SERVICE__MAX_WORKERS=2
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/${DB_PORT}'"]
+      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/${QDRANT_PORT}'"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
 
-  gateway:
-    build:
-      context: .
-      dockerfile: services/gateway_service/Dockerfile
-    image: semantic-search-gateway:latest
-    container_name: gateway
-    ports:
-      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
-    networks:
-      - backend
-    environment:
-      DOC_SERVICE_URL:    ${DOCUMENT_SERVICE_URL}
-      SEARCH_SERVICE_URL: ${SEARCH_SERVICE_URL}
-      GATEWAY_URL:        ${GATEWAY_URL}
-    depends_on:
-      document-service:
-        condition: service_healthy
-      search-service:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${GATEWAY_PORT}/health')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   model-service:
     build:
-      context: ./services/model_service
+      context: .
+      dockerfile: services/model_service/Dockerfile
     image: semantic-search-model-service:latest
     container_name: model-service
     networks:
@@ -60,62 +54,111 @@ services:
     volumes:
       - hf_cache:/app/.cache/huggingface
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${MODEL_SERVICE_PORT}/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
       timeout: 10s
       retries: 5
       start_period: 60s
 
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user_service/Dockerfile
+    image: semantic-search-user-service:latest
+    container_name: user-service
+    networks:
+      - backend
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   document-service:
     build:
-      context: ./services/document_service
+      context: .
+      dockerfile: services/document_service/Dockerfile
     image: semantic-search-document-service:latest
     container_name: document-service
     networks:
       - backend
-    environment:
-      MODEL_SERVICE_URL: ${MODEL_SERVICE_URL}
-      DB_HOST:           ${DB_HOST}
-      DB_PORT:           ${DB_PORT}
+    env_file:
+      - .env
     depends_on:
+      postgres:
+        condition: service_healthy
       qdrant:
         condition: service_healthy
       model-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${DOCUMENT_SERVICE_PORT}/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   search-service:
     build:
-      context: ./services/search_service
+      context: .
+      dockerfile: services/search_service/Dockerfile
     image: semantic-search-search-service:latest
     container_name: search-service
+    ports:
+      - "8003:8003"
     networks:
       - backend
     env_file:
       - .env
-    environment:
-      MODEL_SERVICE_URL: ${MODEL_SERVICE_URL}
-      DB_HOST:           ${DB_HOST}
-      DB_PORT:           ${DB_PORT}
     depends_on:
+      postgres:
+        condition: service_healthy
       qdrant:
         condition: service_healthy
       model-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:${SEARCH_SERVICE_PORT}/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8003/health')"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway_service/Dockerfile
+    image: semantic-search-gateway:latest
+    container_name: gateway
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    networks:
+      - backend
+    env_file:
+      - .env
+    depends_on:
+      user-service:
+        condition: service_healthy
+      document-service:
+        condition: service_healthy
+      search-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   backend:
     driver: bridge
 
 volumes:
+  postgres_data:
   qdrant_data:
   hf_cache:

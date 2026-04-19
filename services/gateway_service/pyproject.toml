@@ -7,4 +7,10 @@ dependencies = [
     "uvicorn",
     "httpx",
     "python-multipart",
+    "pydantic-settings>=2.13.1",
+    "pyjwt>=2.12.1",
+    "common",
 ]
+
+[tool.uv.sources]
+common = { workspace = true }

@@ -1,0 +1,21 @@
+[project]
+name = "user-service"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+dependencies = [
+    "asyncpg>=0.31.0",
+    "common",
+    "fastapi>=0.135.1",
+    "bcrypt",
+    "pydantic>=2.0,<2.10",
+    "pydantic-settings>=2.7",
+    "pyjwt>=2.12.1",
+    "python-jose[cryptography]>=3.5.0",
+    "python-multipart>=0.0.22",
+    "sqlmodel>=0.0.21",
+    "uvicorn>=0.42.0",
+]
+
+[tool.uv.sources]
+common = { workspace = true }

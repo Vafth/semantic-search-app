@@ -32,15 +32,101 @@
         .btn-render { color: #0066cc; border-color: #0066cc; background: white; }
         .btn-render:hover { background: #f0f5ff; }
         #score-dif-group { display: none; }
+
+        /* Auth bar */
+        #auth-bar {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        #auth-gate-section {
+            border: 1px solid #ddd;
+            padding: 32px;
+            text-align: center;
+            background: #fafafa;
+            margin-bottom: 20px;
+        }
+        #auth-gate-section p { color: #555; margin-bottom: 14px; font-size: 13px; }
+        #app-content { display: none; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.4); z-index: 100;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal { background: white; border: 1px solid #ccc; padding: 24px; width: 320px; }
+        .modal h3 { margin: 0 0 14px; font-size: 15px; }
+        .modal-tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 18px; }
+        .modal-tab {
+            padding: 6px 14px; font-size: 13px; cursor: pointer;
+            background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
+        }
+        .modal-tab.active { border-bottom-color: #0066cc; color: #0066cc; font-weight: bold; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .modal .field { margin-bottom: 10px; }
+        .modal .field label { display: block; font-size: 12px; color: #555; margin-bottom: 3px; }
+        .modal .field input { width: 100%; padding: 5px 8px; font-size: 13px; box-sizing: border-box; }
+        .form-error { color: #c00; font-size: 12px; margin: 6px 0; display: none; }
+        .form-error.visible { display: block; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+        /* User dropdown */
+        .user-menu { position: relative; display: inline-block; }
+        .user-dropdown {
+            display: none; position: absolute; right: 0; top: calc(100% + 4px);
+            background: white; border: 1px solid #ccc; min-width: 140px; z-index: 200;
+        }
+        .user-dropdown.open { display: block; }
+        .user-dropdown button {
+            display: block; width: 100%; text-align: left;
+            padding: 7px 12px; background: none; border: none; font-size: 13px; cursor: pointer;
+        }
+        .user-dropdown button:hover { background: #f5f5f5; }
+        .user-dropdown button.danger { color: #c00; }
     </style>
 </head>
 <body>
 
 <h1>Document Search</h1>
 
+<!-- Auth bar -->
+<div id="auth-bar">
+    <span id="auth-status" style="color:#666">Not signed in</span>
+    <div>
+        <div class="user-menu" id="user-menu" style="display:none">
+            <button onclick="toggleDropdown()">▾ <span id="username-display"></span></button>
+            <div class="user-dropdown" id="user-dropdown">
+                <button class="danger" onclick="logout()">Sign out</button>
+            </div>
+        </div>
+        <span id="auth-btns">
+            <button onclick="openModal('login')">Sign in</button>
+            <button onclick="openModal('register')" style="margin-left:6px">Register</button>
+        </span>
+    </div>
+</div>
+
+<!-- Auth gate (shown when logged out) -->
+<div id="auth-gate-section">
+    <p>Sign in or create an account to upload documents and run searches.</p>
+    <button onclick="openModal('login')">Sign in</button>
+    <button onclick="openModal('register')" style="margin-left:8px">Register</button>
+</div>
+
+<!-- App (shown when logged in) -->
+<div id="app-content">
+
 <h2>Upload Document</h2>
 <div class="form-group">
-    <input type="file" id="file-upload" accept=".txt,.md">
+    <input type="file" id="file-upload" accept=".txt">
     <button onclick="uploadDocument()">Upload</button>
 </div>
 
@@ -114,53 +200,239 @@
 
 <div id="search-results"></div>
 
+</div> <!-- end #app-content -->
+
+<!-- Auth modal -->
+<div class="modal-overlay" id="auth-modal">
+    <div class="modal">
+        <h3>Account</h3>
+        <div class="modal-tabs">
+            <button class="modal-tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
+            <button class="modal-tab" id="tab-register" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <div class="tab-panel active" id="panel-login">
+            <div class="field"><label>Username</label>
+                <input type="text" id="login-username" autocomplete="username"></div>
+            <div class="field"><label>Password</label>
+                <input type="password" id="login-password" autocomplete="current-password"
+                    onkeydown="if(event.key==='Enter') doLogin()"></div>
+            <div class="form-error" id="login-error"></div>
+            <div class="modal-footer">
+                <button onclick="closeModal()">Cancel</button>
+                <button onclick="doLogin()" id="login-btn">Sign in</button>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="panel-register">
+            <div class="field"><label>Username</label>
+                <input type="text" id="reg-username"></div>
+            <div class="field"><label>Password</label>
+                <input type="password" id="reg-password"></div>
+            <div class="field"><label>Confirm password</label>
+                <input type="password" id="reg-confirm"
+                    onkeydown="if(event.key==='Enter') doRegister()"></div>
+            <div class="form-error" id="reg-error"></div>
+            <div class="modal-footer">
+                <button onclick="closeModal()">Cancel</button>
+                <button onclick="doRegister()" id="reg-btn">Register</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const GATEWAY = '${GATEWAY_URL}';
 
-let activeDocumentId   = null;
+let token             = localStorage.getItem('token') || null;
+let currentUser       = JSON.parse(localStorage.getItem('currentUser') || 'null');
+let activeDocumentId  = null;
 let activeDocumentText = '';
 
-document.getElementById('refine').addEventListener('change', function() {
-    document.getElementById('score-dif-group').style.display =
-        this.checked ? 'flex' : 'none';
+// ── Init ──────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+    if (token && currentUser) showApp();
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#user-menu'))
+            document.getElementById('user-dropdown').classList.remove('open');
+    });
 });
 
-document.getElementById('deep').addEventListener('change', function() {
-    document.getElementById('deep-min-group').style.display =
-        this.checked ? 'flex' : 'none';
+// ── Auth state ────────────────────────────────────────────────────
+function showApp() {
+    document.getElementById('auth-gate-section').style.display = 'none';
+    document.getElementById('app-content').style.display       = 'block';
+    document.getElementById('auth-btns').style.display         = 'none';
+    document.getElementById('user-menu').style.display         = 'inline-block';
+    document.getElementById('username-display').textContent    = currentUser.username;
+    document.getElementById('auth-status').textContent =
+        `Signed in as ${currentUser.username} (${currentUser.role})`;
+    loadDocuments();
+}
+
+function showGate() {
+    document.getElementById('auth-gate-section').style.display = '';
+    document.getElementById('app-content').style.display       = 'none';
+    document.getElementById('auth-btns').style.display         = '';
+    document.getElementById('user-menu').style.display         = 'none';
+    document.getElementById('auth-status').textContent         = 'Not signed in';
+}
+
+function logout() {
+    token = null; currentUser = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    showGate();
+}
+
+function toggleDropdown() {
+    document.getElementById('user-dropdown').classList.toggle('open');
+}
+
+// ── Modal ─────────────────────────────────────────────────────────
+function openModal(tab) {
+    document.getElementById('auth-modal').classList.add('open');
+    switchTab(tab);
+    setTimeout(() => {
+        document.getElementById(tab === 'login' ? 'login-username' : 'reg-username').focus();
+    }, 80);
+}
+
+function closeModal() {
+    document.getElementById('auth-modal').classList.remove('open');
+    document.getElementById('login-error').classList.remove('visible');
+    document.getElementById('reg-error').classList.remove('visible');
+}
+
+document.getElementById('auth-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('auth-modal')) closeModal();
 });
 
-// Upload
-function uploadDocument() {
+function switchTab(tab) {
+    ['login', 'register'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+        document.getElementById(`panel-${t}`).classList.toggle('active', t === tab);
+    });
+}
+
+// ── Login ─────────────────────────────────────────────────────────
+async function doLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl    = document.getElementById('login-error');
+
+    if (!username || !password) { showErr(errEl, 'All fields required'); return; }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Signing in…';
+
+    try {
+        const form = new FormData();
+        form.append('username', username);
+        form.append('password', password);
+
+        const res  = await fetch(`${GATEWAY}/auth/login`, { method: 'POST', body: form });
+        const data = await res.json();
+        if (!res.ok) { showErr(errEl, data.detail || 'Login failed'); return; }
+
+        token = data.access_token;
+        localStorage.setItem('token', token);
+
+        const me = await apiFetch('/auth/me');
+        currentUser = me;
+        localStorage.setItem('currentUser', JSON.stringify(me));
+
+        closeModal();
+        showApp();
+    } catch (e) {
+        showErr(errEl, 'Connection error');
+    } finally {
+        btn.disabled = false; btn.textContent = 'Sign in';
+    }
+}
+
+// ── Register ──────────────────────────────────────────────────────
+async function doRegister() {
+    const username = document.getElementById('reg-username').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const confirm  = document.getElementById('reg-confirm').value;
+    const errEl    = document.getElementById('reg-error');
+
+    if (!username || !password) { showErr(errEl, 'All fields required'); return; }
+    if (password !== confirm)   { showErr(errEl, 'Passwords do not match'); return; }
+
+    const btn = document.getElementById('reg-btn');
+    btn.disabled = true; btn.textContent = 'Registering…';
+
+    try {
+        const res  = await fetch(`${GATEWAY}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showErr(errEl, data.detail || 'Registration failed'); return; }
+
+        // auto-login after register
+        document.getElementById('login-username').value = username;
+        document.getElementById('login-password').value = password;
+        switchTab('login');
+        await doLogin();
+    } catch (e) {
+        showErr(errEl, 'Connection error');
+    } finally {
+        btn.disabled = false; btn.textContent = 'Register';
+    }
+}
+
+function showErr(el, msg) { el.textContent = msg; el.classList.add('visible'); }
+
+// ── API helper ────────────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+    const res = await fetch(`${GATEWAY}${path}`, {
+        ...opts,
+        headers: { ...(opts.headers || {}), Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 401) { logout(); openModal('login'); throw new Error('Session expired'); }
+    return res.json();
+}
+
+// ── Upload ────────────────────────────────────────────────────────
+async function uploadDocument() {
     const file = document.getElementById('file-upload').files[0];
     if (!file) { alert('Select a file first.'); return; }
 
     const btn = document.querySelector('button[onclick="uploadDocument()"]');
-    btn.disabled = true;
-    btn.textContent = 'Uploading & embedding…';
+    btn.disabled = true; btn.textContent = 'Uploading & embedding…';
 
     const formData = new FormData();
     formData.append('file', file);
 
-    fetch(`${GATEWAY}/api/upload`, { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-            alert(`Uploaded — chunks: ${data.chunks_stored}`);
-            loadDocuments();
-        })
-        .catch(e => alert('Upload error: ' + e))
-        .finally(() => {
-            btn.disabled = false;
-            btn.textContent = 'Upload';
+    try {
+        const res  = await fetch(`${GATEWAY}/api/upload`, {
+            method: 'POST', body: formData,
+            headers: { Authorization: `Bearer ${token}` },
         });
+        const data = await res.json();
+        if (!res.ok) { alert(data.detail || 'Upload failed'); return; }
+        alert(`Uploaded — chunks: ${data.chunks_stored}`);
+        loadDocuments();
+    } catch (e) {
+        alert('Upload error: ' + e);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Upload';
+        document.getElementById('file-upload').value = '';
+    }
 }
 
-// Documents table
-function loadDocuments() {
-    fetch(`${GATEWAY}/api/documents`)
-        .then(r => r.json())
-        .then(docs => renderTable(docs))
-        .catch(e => console.error('Failed to load documents:', e));
+// ── Documents ─────────────────────────────────────────────────────
+async function loadDocuments() {
+    try {
+        const docs = await apiFetch('/api/documents');
+        renderTable(Array.isArray(docs) ? docs : []);
+    } catch (e) {
+        if (e.message !== 'Session expired') console.error(e);
+    }
 }
 
 function renderTable(docs) {
@@ -170,76 +442,72 @@ function renderTable(docs) {
         return;
     }
     tbody.innerHTML = docs.map(doc => `
-        <tr id="row-${doc.document_id}">
+        <tr id="row-${doc.id}">
             <td style="text-align:center">
-                <input type="checkbox" class="doc-checkbox" value="${doc.document_id}">
+                <input type="checkbox" class="doc-checkbox" value="${doc.id}">
             </td>
-            <td>${doc.filename}</td>
-            <td style="text-align:center">${doc.chunks}</td>
-            <td class="id-cell" title="${doc.document_id}">${doc.document_id}</td>
+            <td>${doc.file_name}</td>
+            <td style="text-align:center">${doc.chunk_count}</td>
+            <td class="id-cell" title="${doc.id}">${doc.id}</td>
             <td style="display:flex; gap:6px">
                 <button class="btn-render"
-                    onclick="renderDocument('${doc.document_id}', '${doc.filename}')">
-                    Render
-                </button>
+                    onclick="renderDocument('${doc.id}', '${doc.file_name}')">Render</button>
                 <button class="btn-delete"
-                    onclick="deleteDocument('${doc.document_id}')">
-                    Delete
-                </button>
+                    onclick="deleteDocument('${doc.id}')">Delete</button>
             </td>
         </tr>
     `).join('');
 }
 
-// Render document
-function renderDocument(docId, filename) {
-    fetch(`${GATEWAY}/api/document/${docId}/text`)
-        .then(r => r.json())
-        .then(data => {
-            activeDocumentId   = docId;
-            activeDocumentText = data.text;
+async function renderDocument(docId, filename) {
+    try {
+        const data = await apiFetch(`/api/document/${docId}/text`);
+        activeDocumentId   = docId;
+        activeDocumentText = data.text;
 
-            document.getElementById('document-title').textContent = filename;
-            document.getElementById('document-content').textContent = data.text;
-            document.getElementById('document-view').style.display = 'block';
+        document.getElementById('document-title').textContent   = filename;
+        document.getElementById('document-content').textContent = data.text;
+        document.getElementById('document-view').style.display  = 'block';
 
-            document.querySelectorAll('tr').forEach(r => r.classList.remove('active-row'));
-            document.getElementById(`row-${docId}`)?.classList.add('active-row');
-            document.getElementById('document-view').scrollIntoView({ behavior: 'smooth' });
-        })
-        .catch(e => alert('Render error: ' + e));
+        document.querySelectorAll('tr').forEach(r => r.classList.remove('active-row'));
+        document.getElementById(`row-${docId}`)?.classList.add('active-row');
+        document.getElementById('document-view').scrollIntoView({ behavior: 'smooth' });
+    } catch (e) {
+        if (e.message !== 'Session expired') alert('Render error: ' + e);
+    }
 }
 
-// Delete
-function deleteDocument(docId) {
+async function deleteDocument(docId) {
     if (!confirm(`Delete document ${docId}?`)) return;
-
-    fetch(`${GATEWAY}/api/document/${docId}`, { method: 'DELETE' })
-        .then(r => r.json())
-        .then(() => {
-            document.getElementById(`row-${docId}`)?.remove();
-            if (activeDocumentId === docId) {
-                document.getElementById('document-view').style.display = 'none';
-                activeDocumentId = null;
-                activeDocumentText = '';
-            }
-        })
-        .catch(e => alert('Delete error: ' + e));
+    try {
+        await apiFetch(`/api/document/${docId}`, { method: 'DELETE' });
+        document.getElementById(`row-${docId}`)?.remove();
+        if (activeDocumentId === docId) {
+            document.getElementById('document-view').style.display = 'none';
+            activeDocumentId = null; activeDocumentText = '';
+        }
+    } catch (e) { alert('Delete error: ' + e); }
 }
 
-// Search
+// ── Search ────────────────────────────────────────────────────────
+document.getElementById('refine').addEventListener('change', function() {
+    document.getElementById('score-dif-group').style.display = this.checked ? 'flex' : 'none';
+});
+document.getElementById('deep').addEventListener('change', function() {
+    document.getElementById('deep-min-group').style.display = this.checked ? 'flex' : 'none';
+});
+
 function getCheckedIds() {
     return [...document.querySelectorAll('.doc-checkbox:checked')].map(cb => cb.value);
 }
 
-function doSearch() {
+async function doSearch() {
     const query = document.getElementById('search-query').value.trim();
     if (!query) { alert('Enter a search query.'); return; }
-    
+
     const btn = document.querySelector('button[onclick="doSearch()"]');
     const resultsDiv = document.getElementById('search-results');
-    btn.disabled = true;
-    btn.textContent = 'Searching…';
+    btn.disabled = true; btn.textContent = 'Searching…';
     resultsDiv.innerHTML = '<p style="color:#888">⏳ Embedding query and searching…</p>';
 
     const model      = document.getElementById('model-select').value;
@@ -249,32 +517,24 @@ function doSearch() {
     const dif        = document.getElementById('score-dif').value;
     const checkedIds = getCheckedIds();
 
-    let url = `${GATEWAY}/api/search?query=${encodeURIComponent(query)}`
-            + `&model=${model}&top_k=${topK}&score=${score}`;
-
+    let url = `/api/search?query=${encodeURIComponent(query)}&model=${model}&top_k=${topK}&score=${score}`;
     if (refine)            url += `&refine=true&dif=${dif}`;
     if (checkedIds.length) url += `&document_ids=${checkedIds.join(',')}`;
-    if (document.getElementById('deep').checked) {
-        const deepMin = document.getElementById('deep-min').value;
-        url += `&deep=true&deep_min=${deepMin}`;
-    }
-    
-    fetch(url)
-        .then(r => r.json())
-        .then(data => {
-            displayResults(data);
-            if (activeDocumentText) highlightInDocument(data.results);
-        })
-        .catch(e => {
+    if (document.getElementById('deep').checked)
+        url += `&deep=true&deep_min=${document.getElementById('deep-min').value}`;
+
+    try {
+        const data = await apiFetch(url);
+        displayResults(data);
+        if (activeDocumentText) highlightInDocument(data.results);
+    } catch (e) {
+        if (e.message !== 'Session expired')
             resultsDiv.innerHTML = `<p style="color:#c00">Search error: ${e}</p>`;
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.textContent = 'Search';
-        });
+    } finally {
+        btn.disabled = false; btn.textContent = 'Search';
+    }
 }
 
-// Display results
 function displayResults(data) {
     const div = document.getElementById('search-results');
     if (!data.results?.length) {
@@ -297,19 +557,15 @@ function displayResults(data) {
     `;
 }
 
-// Highlight
 function highlightInDocument(results) {
+    if (!results?.length) return;
     const el = document.getElementById('document-content');
     let content = activeDocumentText;
-
     results.forEach(r => {
         const escaped = r.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        content = content.replace(
-            new RegExp(escaped, 'gi'),
-            match => `<mark class="highlight">${match}</mark>`
-        );
+        content = content.replace(new RegExp(escaped, 'gi'),
+            match => `<mark class="highlight">${match}</mark>`);
     });
-
     el.innerHTML = content;
     el.querySelector('.highlight')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -317,8 +573,6 @@ function highlightInDocument(results) {
 function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-
-window.addEventListener('load', loadDocuments);
 </script>
 </body>
 </html>
