@@ -7,5 +7,15 @@ dependencies = [
     "uvicorn",
     "httpx",
     "huggingface-hub",
+    "pydantic-settings>=2.13.1",
+    "common",
+]
+
+[dependency-groups]
+heavy = [
+    "torch",
     "sentence-transformers",
 ]
+
+[tool.uv.sources]
+common = { workspace = true }

@@ -4,14 +4,16 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends gettext && rm -rf /var/lib/apt/lists/*
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+COPY services/common ./services/common
 
 COPY services/gateway_service/requirements.txt .
-RUN uv pip install --system --no-cache --require-hashes -r requirements.txt
+RUN uv pip install --system --no-cache -r requirements.txt
 
+COPY services/gateway_service/ .
 COPY frontend/index.html /app/index.html.template
 
-COPY services/gateway_service/main.py .
 
 EXPOSE 8080
 

@@ -8,4 +8,11 @@ dependencies = [
     "pydantic",
     "httpx",
     "qdrant-client",
+    "pydantic-settings>=2.13.1",
+    "sqlmodel>=0.0.33",
+    "asyncpg>=0.31.0",
+    "common",
 ]
+
+[tool.uv.sources]
+common = { workspace = true }
