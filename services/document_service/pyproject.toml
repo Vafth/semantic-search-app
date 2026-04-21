@@ -1,5 +1,5 @@
 [project]
-name = "document-service"
+name = "document_service"
 version = "0.2.0"
 description = "Service for getting access to document management features"
 requires-python = ">=3.11"
