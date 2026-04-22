@@ -7,7 +7,7 @@ from pydantic import BaseModel
 class DocumentRead(BaseModel):
     id:           int
     user_id:      int
-    file_name:    str
+    filename:    str
     file_size:    int
     content_type: str
     chunk_count:  int
@@ -19,6 +19,6 @@ class DocumentRead(BaseModel):
 
 class DocumentCreate(BaseModel):
     """Used when client uploads a file"""
-    file_name:    str
+    filename:    str
     file_size:    int
     content_type: str

@@ -3,7 +3,7 @@ import logging
 import httpx
 
 from core.config import settings
-from schemas.search import SearchParams, SearchResult
+from schemas.search import SearchParams, SearchHit
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ async def embed_query(query: str, model_name: str) -> list[float]:
         return response.json()["vectors"][0]
 
 
-def deduplicate_results(results: list[SearchResult], top_k: int) -> list[SearchResult]:
+def deduplicate_results(results: list[SearchHit], top_k: int) -> list[SearchHit]:
     seen = {}
     for r in results:
         if r.text not in seen or r.score > seen[r.text].score:
@@ -65,8 +65,9 @@ async def _filter_chunk_to_relevant_sentences(
     return " ".join(kept) if kept else sentences[scores.index(max(scores))]
 
 
-async def refine_results(results: list[SearchResult], params: SearchParams) -> list[SearchResult]:
-    refined = []
+async def refine_results(results: list[SearchHit], params: SearchParams) -> list[SearchHit]:
+    refined: list[SearchHit] = []
+    
     for r in results:
         filtered_text = await _filter_chunk_to_relevant_sentences(
             query      = params.query,

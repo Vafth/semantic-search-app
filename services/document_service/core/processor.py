@@ -1,7 +1,11 @@
 import re
 import httpx
+from asyncio import gather
+
+from qdrant_client import QdrantClient
 
 from core.config import settings
+from repository.vector import store_chunks
 
 def clean_text(text: str) -> str:
     text = re.sub(r'\[\d+\]', '', text)
@@ -40,3 +44,23 @@ async def get_embeddings(texts: list[str], model: str) -> list[list[float]]:
         )
         response.raise_for_status()
         return response.json()["vectors"]
+    
+async def index_document(
+        qdrant:   QdrantClient,
+        chunks:   list[str],
+        doc_id:   int,
+        filename: str,
+    ) -> None:
+
+    await gather(*[
+        store_chunks(
+            qdrant,
+            chunks,
+            await get_embeddings(chunks, model_name),
+            doc_id,
+            filename,
+            model_name,
+            cfg,
+        )
+        for model_name, cfg in settings.COLLECTIONS.items()
+    ])

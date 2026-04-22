@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from database import create_db_and_tables
-from qdrant import get_qdrant_client, init_qdrant
+from qdrant import get_qdrant_client, connect_qdrant
 from routers import search
 
 
@@ -27,13 +27,14 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing PostgreSQL...")
     await create_db_and_tables()
 
-    logger.info("Initializing Qdrant...")
-    init_qdrant(logger)
+    logger.info("Initializing Qdrant Client...")
+    connect_qdrant()
 
     yield
     
     logger.info("Shutting down Search Service...")
     get_qdrant_client().close()
+
 
 app = FastAPI(
     title="Search Service",

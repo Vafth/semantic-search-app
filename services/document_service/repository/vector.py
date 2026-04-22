@@ -67,3 +67,18 @@ async def get_chunks_by_document(qdrant: QdrantClient, document_id: int) -> str:
             all_sentences.extend(sentences)
 
     return ". ".join(all_sentences)
+
+async def delete_points_by_document(qdrant: QdrantClient, doc_id: int) -> list[str]:
+    """Returns list of failed collections."""
+    failed = []
+    for _, cfg in settings.COLLECTIONS.items():
+        try:
+            qdrant.delete(
+                collection_name  = cfg["collection"],
+                points_selector  = Filter(
+                    must=[FieldCondition(key="document_id", match=MatchValue(value=doc_id))]
+                ),
+            )
+        except Exception:
+            failed.append(cfg["collection"])
+    return failed

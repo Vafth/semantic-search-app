@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 class SearchResultRead(BaseModel):
     id:          int
-    document_id: int
+    filename: int
     chunk_text:  str
     chunk_index: int
     score:       float
@@ -28,34 +28,31 @@ class SearchRequestRead(BaseModel):
 
 
 class SearchRequestCreate(BaseModel):
-    """Incoming search request from client"""
-    query:         str
-    search_params: dict = {}
-    document_id:   Optional[int] = None
+    query:           str
+    search_params:   dict = {}
+    document_name:   Optional[str] = None
 
 
 class SearchParams(BaseModel):
-    query:        str           = Query(...)
-    model:        str           = Query(...)
-    top_k:        int           = Query(5)
-    score:        float         = Query(0.4)
-    dif:          float         = Query(0.0)
-    document_ids: Optional[str] = Query(None)
-    refine:       bool          = Query(False)
-    deep:         bool          = Query(False)
-    deep_min:     float         = Query(0.25)
+    query:     str           = Query(...)
+    model:     str           = Query(...)
+    top_k:     int           = Query(5)
+    score:     float         = Query(0.4)
+    dif:       float         = Query(0.0)
+    filenames: Optional[str] = Query(None)
+    refine:    bool          = Query(False)
+    deep:      bool          = Query(False)
+    deep_min:  float         = Query(0.25)
 
 
-class SearchResult(BaseModel):
+class SearchHit(BaseModel):
     text:        str
     score:       float
     chunk_index: int
-    document_id: str
     filename:    str
-
 
 class SearchResponse(BaseModel):
     query:      str
     model:      str
     collection: str
-    results:    list[SearchResult]
+    results:    list[SearchHit]
