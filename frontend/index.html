@@ -137,7 +137,6 @@
             <th style="width:32px">✓</th>
             <th>Name</th>
             <th style="width:60px">Chunks</th>
-            <th class="id-cell">ID</th>
             <th style="width:140px">Actions</th>
         </tr>
     </thead>
@@ -438,55 +437,57 @@ async function loadDocuments() {
 function renderTable(docs) {
     const tbody = document.getElementById('documents-body');
     if (!docs.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="color:#aaa">No documents found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#aaa">No documents found.</td></tr>';
         return;
     }
     tbody.innerHTML = docs.map(doc => `
-        <tr id="row-${doc.id}">
+        <tr id="row-${doc.filename}">
             <td style="text-align:center">
-                <input type="checkbox" class="doc-checkbox" value="${doc.id}">
+                <input type="checkbox" class="doc-checkbox" value="${doc.filename}">
             </td>
-            <td>${doc.file_name}</td>
+            <td>${doc.filename}</td>
             <td style="text-align:center">${doc.chunk_count}</td>
-            <td class="id-cell" title="${doc.id}">${doc.id}</td>
             <td style="display:flex; gap:6px">
                 <button class="btn-render"
-                    onclick="renderDocument('${doc.id}', '${doc.file_name}')">Render</button>
+                    onclick="renderDocument('${doc.filename}')">Render</button>
                 <button class="btn-delete"
-                    onclick="deleteDocument('${doc.id}')">Delete</button>
+                    onclick="deleteDocument('${doc.filename}')">Delete</button>
             </td>
         </tr>
     `).join('');
 }
 
-async function renderDocument(docId, filename) {
+async function renderDocument(filename) {
     try {
-        const data = await apiFetch(`/api/document/${docId}/text`);
-        activeDocumentId   = docId;
-        activeDocumentText = data.text;
+        const data = await apiFetch(`/api/document/${encodeURIComponent(filename)}/text`);
+        activeDocumentFilename = filename;
+        activeDocumentText     = data.text;
 
         document.getElementById('document-title').textContent   = filename;
         document.getElementById('document-content').textContent = data.text;
         document.getElementById('document-view').style.display  = 'block';
 
         document.querySelectorAll('tr').forEach(r => r.classList.remove('active-row'));
-        document.getElementById(`row-${docId}`)?.classList.add('active-row');
+        document.getElementById(`row-${filename}`)?.classList.add('active-row');
         document.getElementById('document-view').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         if (e.message !== 'Session expired') alert('Render error: ' + e);
     }
 }
 
-async function deleteDocument(docId) {
-    if (!confirm(`Delete document ${docId}?`)) return;
+async function deleteDocument(filename) {
+    if (!confirm(`Delete document "${filename}"?`)) return;
     try {
-        await apiFetch(`/api/document/${docId}`, { method: 'DELETE' });
-        document.getElementById(`row-${docId}`)?.remove();
-        if (activeDocumentId === docId) {
+        await apiFetch(`/api/document/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+        document.getElementById(`row-${filename}`)?.remove();
+        if (activeDocumentFilename === filename) {
             document.getElementById('document-view').style.display = 'none';
-            activeDocumentId = null; activeDocumentText = '';
+            activeDocumentFilename = null;
+            activeDocumentText     = '';
         }
-    } catch (e) { alert('Delete error: ' + e); }
+    } catch (e) {
+        if (e.message !== 'Session expired') alert('Delete error: ' + e);
+    }
 }
 
 // ── Search ────────────────────────────────────────────────────────
@@ -497,7 +498,7 @@ document.getElementById('deep').addEventListener('change', function() {
     document.getElementById('deep-min-group').style.display = this.checked ? 'flex' : 'none';
 });
 
-function getCheckedIds() {
+function getCheckedFilenames() {
     return [...document.querySelectorAll('.doc-checkbox:checked')].map(cb => cb.value);
 }
 
@@ -515,11 +516,11 @@ async function doSearch() {
     const score      = document.getElementById('score-threshold').value;
     const refine     = document.getElementById('refine').checked;
     const dif        = document.getElementById('score-dif').value;
-    const checkedIds = getCheckedIds();
+    const checkedFilenames = getCheckedFilenames();
 
     let url = `/api/search?query=${encodeURIComponent(query)}&model=${model}&top_k=${topK}&score=${score}`;
-    if (refine)            url += `&refine=true&dif=${dif}`;
-    if (checkedIds.length) url += `&document_ids=${checkedIds.join(',')}`;
+    if (refine)                    url += `&refine=true&dif=${dif}`;
+    if (checkedFilenames.length)   url += `&filenames=${checkedFilenames.map(encodeURIComponent).join(',')}`;
     if (document.getElementById('deep').checked)
         url += `&deep=true&deep_min=${document.getElementById('deep-min').value}`;
 
@@ -550,7 +551,8 @@ function displayResults(data) {
         ${data.results.map((r, i) => `
             <div class="result-item">
                 <span class="result-score">score: ${r.score}</span>
-                <strong>#${i+1} · chunk ${r.chunk_index+1} · ${r.filename}</strong>
+                <strong>#${i+1} · chunk ${r.chunk_index+1}</strong>
+                <span style="font-size:11px; color:#888; margin-left:6px">📄 ${r.filename}</span>
                 <div style="margin-top:5px">${escapeHtml(r.text)}</div>
             </div>
         `).join('')}

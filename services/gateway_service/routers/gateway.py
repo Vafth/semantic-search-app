@@ -137,30 +137,30 @@ async def list_documents(claims: ClaimsDep):
     return _json_response(resp)
 
 
-@router.get("/api/document/{document_id}/text")
-async def get_document_text(document_id: str, claims: ClaimsDep):
+@router.get("/api/document/{filename}/text")
+async def get_document_text(filename: str, claims: ClaimsDep):
         
     internal_headers = build_internal_headers(claims)
     async with httpx.AsyncClient(timeout=10.0) as client:
         await _verify_user(claims, client)
     
         resp = await client.get(
-            f"{settings.DOCUMENT_SERVICE_URL}/document/{document_id}/text",
+            f"{settings.DOCUMENT_SERVICE_URL}/document/{filename}/text",
             headers = internal_headers,
         )
     
     return _json_response(resp)
 
 
-@router.delete("/api/document/{document_id}")
-async def delete_document(document_id: str, claims: ClaimsDep):
+@router.delete("/api/document/{filename}")
+async def delete_document(filename: str, claims: ClaimsDep):
     
     internal_headers = build_internal_headers(claims)
     async with httpx.AsyncClient(timeout=300.0) as client:
         await _verify_user(claims, client)
     
         resp = await client.delete(
-            f"{settings.DOCUMENT_SERVICE_URL}/document/{document_id}",
+            f"{settings.DOCUMENT_SERVICE_URL}/document/{filename}",
             headers = internal_headers,
         )
     

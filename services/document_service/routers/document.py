@@ -1,9 +1,7 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Header
-from qdrant_client.models import Filter, FieldCondition, MatchValue
-import asyncio
 
 from core.config import settings
-from core.processor import chunk_text, get_embeddings
+from core.processor import chunk_text
 
 from database import AsyncSessionDep
 from qdrant import QdrantDep
@@ -13,10 +11,11 @@ from repository.postgres import (
     create_document, 
     update_document_status,
     get_documents_by_user, 
-    get_document_by_id,
+    get_document_by_name,
     delete_document_by_id
 )
-from repository.vector import store_chunks, get_chunks_by_document
+from repository.vector import get_chunks_by_document, delete_points_by_document
+from core.processor import index_document
 
 router = APIRouter()
 
@@ -40,34 +39,26 @@ async def upload(
         raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.")
 
     try:
+        existing = await get_document_by_name(db, x_user_id, file.filename)
+        if existing:
+            raise HTTPException(status_code=409, detail="Document with this name already exists")
+
         chunks = chunk_text(text)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
-    # 1. Create entry in PostgreSQL
+    # 1. Create Document in PostgreSQL
     doc_in = DocumentCreate(
-        file_name    = file.filename,
+        filename    = file.filename,
         file_size    = len(content),
         content_type = file.content_type,
     )
     doc_record = await create_document(db, doc_in, x_user_id)
 
-    # 2. Upload to Qdrant
     try:
+        # 2. Upload to Qdrant
         chunks = chunk_text(text)
-
-        await asyncio.gather(*[
-            store_chunks(
-                qdrant,
-                chunks,
-                await get_embeddings(chunks, model_name),
-                doc_record.id,
-                file.filename,
-                model_name,
-                cfg,
-            )
-            for model_name, cfg in settings.COLLECTIONS.items()
-        ])
+        await index_document(qdrant, chunks, doc_record.id, file.filename)
             
         # 3. Update PostgreSQL to Ready
         await update_document_status(db, doc_record.id, DocumentStatus.ready, len(chunks))
@@ -77,6 +68,7 @@ async def upload(
             "document_id":   doc_record.id,
             "chunks_stored": len(chunks)
         }
+    
     except Exception as e:
         # Mark as failed if Qdrant fails
         await update_document_status(db, doc_record.id, DocumentStatus.failed)
@@ -91,62 +83,51 @@ async def list_documents(
     docs = await get_documents_by_user(db, x_user_id)
     return docs
 
-@router.get("/document/{document_id}/text")
+@router.get("/document/{document_name}/text")
 async def get_document_text(
-    document_id: int,
-    db:          AsyncSessionDep,
-    qdrant:      QdrantDep,
-    x_user_id:   int = Header(...)
+    document_name: str,
+    db:            AsyncSessionDep,
+    qdrant:        QdrantDep,
+    x_user_id:     int = Header(...)
 ):
-    # 1. Ownership check in Postgres
-    doc = await get_document_by_id(db, document_id)
-    if not doc or doc.user_id != x_user_id:
+    # 1. Find document in Postgres
+    doc = await get_document_by_name(db, x_user_id, document_name)
+    if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    # 2. Reconstruct text using our core logic
-    text = await get_chunks_by_document(qdrant, document_id)
+    # 2. Reconstruct text
+    text = await get_chunks_by_document(qdrant, doc.id)
     
     if not text:
         raise HTTPException(status_code=404, detail="Document content missing in vector store.")
 
+    # 3. Return the document text
     return {
-        "document_id": document_id,
-        "filename":    doc.file_name,
+        "filename":    doc.filename,
         "text":        text,
     }
 
-@router.delete("/document/{document_id}")
+@router.delete("/document/{document_name}")
 async def delete_document(
-    document_id: int,
-    db:          AsyncSessionDep,
-    qdrant:      QdrantDep,
-    x_user_id:   int = Header(...)
+    document_name: str,
+    db:            AsyncSessionDep,
+    qdrant:        QdrantDep,
+    x_user_id:     int = Header(...)
 ):
-    # 1. Verify ownership in Postgres
-    doc = await get_document_by_id(db, document_id)
-    if not doc or doc.user_id != x_user_id:
+    # 1. Find document in Postgres
+    doc = await get_document_by_name(db, x_user_id, document_name)
+    if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
-    # 2. Delete from Qdrant first (Vector DB Cleanup)
-    failed = []
-    for _, cfg in settings.COLLECTIONS.items():
-        try:
-            qdrant.delete(
-                collection_name=cfg["collection"],
-                points_selector=Filter(
-                    must=[FieldCondition(
-                        key   = "document_id",
-                        match = MatchValue(value=document_id)
-                    )]
-                ),
-            )
-        except Exception:
-            failed.append(cfg["collection"])
+    # 2. Delete points from Qdrant
+    failed = delete_points_by_document(qdrant, doc.id)
 
     if failed:
         raise HTTPException(status_code=500, detail="Qdrant deletion failed.")
 
     # 3. Delete from Postgres
-    await delete_document_by_id(document_id, db)
+    await delete_document_by_id(db, doc.id)
     
-    return {"message": "Document deleted successfully."}
+    return {
+        "message": "Document deleted successfully."
+    }
