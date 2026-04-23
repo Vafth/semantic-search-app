@@ -5,237 +5,406 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Search</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; max-width: 1100px; }
-        h2 { margin-top: 28px; margin-bottom: 10px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 8px; }
-        th, td { border: 1px solid #ccc; padding: 7px 10px; text-align: left; font-size: 13px; }
-        th { background: #f5f5f5; }
-        tr.active-row { background: #fffbe6; }
-        td.id-cell { font-size: 11px; color: #888; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .form-group { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        label { min-width: 150px; font-size: 13px; }
-        input[type=text], input[type=number], select { padding: 4px 8px; font-size: 13px; }
-        .hint { font-size: 11px; color: #888; }
-        #document-view { display: none; margin-top: 20px; }
-        #document-content {
-            white-space: pre-wrap; border: 1px solid #ccc; padding: 12px;
-            max-height: 380px; overflow-y: auto; font-size: 13px;
-            line-height: 1.6; background: #fafafa;
+        /* Global & Color Variables */
+        :root {
+            --bg-body: #ffffff;
+            --bg-panel: #f5f5f5;
+            --border-color: #ced4da;
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --accent: #e07820;
+            --action-red: #dc3545;
+            --action-orange: #fd7e14;
+            --header-bg: #e9ecef;
         }
-        .highlight { background: #ffe066; border-radius: 2px; }
-        #search-results { margin-top: 20px; }
-        .result-item { border: 1px solid #ddd; padding: 8px 12px; margin-bottom: 6px; border-radius: 4px; font-size: 13px; }
-        .result-score { color: #888; font-size: 11px; float: right; }
-        button { padding: 4px 12px; font-size: 13px; cursor: pointer; }
-        .btn-delete { color: #c00; border-color: #c00; background: white; }
-        .btn-delete:hover { background: #fff0f0; }
-        .btn-render { color: #0066cc; border-color: #0066cc; background: white; }
-        .btn-render:hover { background: #f0f5ff; }
-        #score-dif-group { display: none; }
 
-        /* Auth bar */
-        #auth-bar {
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-            margin-bottom: 20px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            border-radius: 0 !important;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Top Header & User Bar */
+        .page-header {
+            text-align: center;
+            padding: 20px 0 10px 0;
+        }
+        
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .user-bar {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .hamburger-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .user-info {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Layout Grid */
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 100px);
+            position: relative;
+        }
+
+        /* Left Sidebar (Hidden by default) */
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-panel);
+            border-right: 2px solid var(--border-color);
+            padding: 20px;
+            position: absolute;
+            left: -300px; /* Hidden off-screen */
+            height: 100%;
+            transition: left 0.3s ease;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .logout-link {
+            color: var(--action-orange);
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        /* Basic Data Table (User Data & Documents) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            background: #fff;
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--header-bg);
+            font-weight: normal;
+        }
+
+        /* Search History Blocks */
+        .history-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        /* Two Column Main Content */
+        .content-grid {
+            display: flex;
+            width: 100%;
+            padding: 0 20px;
+            gap: 20px;
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+
+        /* Push content when sidebar is open */
+        .main-container.sidebar-open .content-grid {
+            margin-left: 300px;
+            width: calc(100% - 300px);
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Blocks inside columns */
+        .block-panel {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            background-color: var(--bg-panel);
+        }
+
+        .block-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Buttons */
+        button, .btn {
+            padding: 4px 10px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
             font-size: 13px;
         }
-        #auth-gate-section {
-            border: 1px solid #ddd;
-            padding: 32px;
-            text-align: center;
-            background: #fafafa;
-            margin-bottom: 20px;
-        }
-        #auth-gate-section p { color: #555; margin-bottom: 14px; font-size: 13px; }
-        #app-content { display: none; }
+        
+        .btn-primary { color: var(--accent); border-color: var(--accent); }
+        .btn-danger { color: var(--action-red); border-color: var(--action-red); }
+        .btn:hover { background-color: var(--header-bg); }
 
-        /* Modal */
+        /* Form Inputs */
+        input[type="text"], select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: block; font-size: 12px; margin-bottom: 4px; }
+
+        /* Document Snippets Area */
+        .snippet-block {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .snippet-header {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
         .modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.4); z-index: 100;
-            align-items: center; justify-content: center;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
         }
-        .modal-overlay.open { display: flex; }
-        .modal { background: white; border: 1px solid #ccc; padding: 24px; width: 320px; }
-        .modal h3 { margin: 0 0 14px; font-size: 15px; }
-        .modal-tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 18px; }
-        .modal-tab {
-            padding: 6px 14px; font-size: 13px; cursor: pointer;
-            background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
+        .modal-content {
+            background: white;
+            width: 350px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
         }
-        .modal-tab.active { border-bottom-color: #0066cc; color: #0066cc; font-weight: bold; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-        .modal .field { margin-bottom: 10px; }
-        .modal .field label { display: block; font-size: 12px; color: #555; margin-bottom: 3px; }
-        .modal .field input { width: 100%; padding: 5px 8px; font-size: 13px; box-sizing: border-box; }
-        .form-error { color: #c00; font-size: 12px; margin: 6px 0; display: none; }
-        .form-error.visible { display: block; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 
-        /* User dropdown */
-        .user-menu { position: relative; display: inline-block; }
-        .user-dropdown {
-            display: none; position: absolute; right: 0; top: calc(100% + 4px);
-            background: white; border: 1px solid #ccc; min-width: 140px; z-index: 200;
-        }
-        .user-dropdown.open { display: block; }
-        .user-dropdown button {
-            display: block; width: 100%; text-align: left;
-            padding: 7px 12px; background: none; border: none; font-size: 13px; cursor: pointer;
-        }
-        .user-dropdown button:hover { background: #f5f5f5; }
-        .user-dropdown button.danger { color: #c00; }
     </style>
 </head>
 <body>
 
-<h1>Document Search</h1>
-
-<!-- Auth bar -->
-<div id="auth-bar">
-    <span id="auth-status" style="color:#666">Not signed in</span>
-    <div>
-        <div class="user-menu" id="user-menu" style="display:none">
-            <button onclick="toggleDropdown()">▾ <span id="username-display"></span></button>
-            <div class="user-dropdown" id="user-dropdown">
-                <button class="danger" onclick="logout()">Sign out</button>
-            </div>
-        </div>
+<div class="user-bar">
+    <div style="display: flex; align-items: center;">
+        <button class="hamburger-btn" id="burger-menu" onclick="toggleSidebar()" style="display:none">☰</button>
+        <header class="page-header" style="padding: 0; margin-left: 10px;">
+            <h1 style="font-size: 18px;">Document Search</h1>
+        </header>
+    </div>
+    
+    <div id="auth-controls">
+        <span id="auth-status" style="font-size: 13px; color: var(--text-muted); margin-right: 15px;">Not signed in</span>
         <span id="auth-btns">
-            <button onclick="openModal('login')">Sign in</button>
-            <button onclick="openModal('register')" style="margin-left:6px">Register</button>
+            <button onclick="openModal('login')" class="btn btn-primary">Sign in</button>
+            <button onclick="openModal('register')" class="btn">Register</button>
         </span>
+        <div id="user-menu" style="display:none;">
+            <span class="user-info" id="username-display" style="margin-right: 10px;"></span>
+            <button class="btn btn-danger" onclick="logout()">Sign out</button>
+        </div>
     </div>
 </div>
 
-<!-- Auth gate (shown when logged out) -->
-<div id="auth-gate-section">
-    <p>Sign in or create an account to upload documents and run searches.</p>
-    <button onclick="openModal('login')">Sign in</button>
-    <button onclick="openModal('register')" style="margin-left:8px">Register</button>
+<div id="auth-gate-section" class="main-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+    <div class="block-panel" style="max-width: 400px;">
+        <div class="block-title">Welcome</div>
+        <p style="margin-bottom: 20px; font-size: 14px; color: var(--text-muted);">Sign in or create an account to upload documents and run searches.</p>
+        <button onclick="openModal('login')" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Sign in</button>
+        <button onclick="openModal('register')" class="btn" style="width: 100%;">Register</button>
+    </div>
 </div>
 
-<!-- App (shown when logged in) -->
-<div id="app-content">
+<div id="app-content" style="display: none;">
+    <div class="main-container" id="mainContainer">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-header">
+                    <span>Account</span>
+                    <a href="#" class="logout-link" onclick="logout()">Logout</a>
+                </div>
+                <table>
+                    <tbody></tbody>
+                </table>
+            </div>
 
-<h2>Upload Document</h2>
-<div class="form-group">
-    <input type="file" id="file-upload" accept=".txt">
-    <button onclick="uploadDocument()">Upload</button>
+            <div class="sidebar-section">
+                <div class="sidebar-header">
+                    <span>Search History</span>
+                </div>
+                <div id="search-history-container"></div>
+            </div>
+        </aside>
+
+        <div class="content-grid">        
+            <section class="column" id="left-column">
+                <div class="block-panel">
+                    <div class="block-title">Search</div>
+                    <div class="form-group">
+                        <label>Query:</label>
+                        <input type="text" id="search-query" placeholder="Enter search query">
+                    </div>
+                    <div class="form-group">
+                        <label>Model:</label>
+                        <select id="model-select">
+                            <option value="small_model">small_model — 47M · 384-dim · fastest</option>
+                            <option value="normal_model">normal_model — 149M · 768-dim · best English</option>
+                            <option value="multilingual_model">multilingual_model — 278M · 768-dim · non-English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Top K:</label>
+                        <input type="number" id="top-k" min="1" max="20" value="5" style="width:60px">
+                    </div>
+                    <div class="form-group">
+                        <label>Score Threshold:</label>
+                        <input type="number" id="score-threshold" min="0" max="1" step="0.05" value="0.4" style="width:70px">
+                    </div>
+                    <div class="form-group">
+                        <label>Refine results:</label>
+                        <input type="checkbox" id="refine">
+                        <span class="hint">filter irrelevant sentences within chunks</span>
+                    </div>
+                    <div class="form-group" id="score-dif-group" style="display:none">
+                        <label>Score Difference:</label>
+                        <input type="number" id="score-dif" min="0" max="1" step="0.01" value="0.05" style="width:70px">
+                        <span class="hint">sentence threshold = score + dif</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Deep search:</label>
+                        <input type="checkbox" id="deep">
+                        <span class="hint">scan borderline chunks at sentence level (slower)</span>
+                    </div>
+                    <div class="form-group" id="deep-min-group" style="display:none">
+                        <label>Deep min score:</label>
+                        <input type="number" id="deep-min" min="0" max="1" step="0.05" value="0.25" style="width:70px">
+                        <span class="hint">lower bound for borderline chunks</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="doSearch()" style="margin-top:10px;">Search</button>
+                </div>
+
+                <div class="block-panel" style="flex-grow: 1;" id="search-results-panel">
+                    <div class="block-title">Search Results</div>
+                    <div id="search-results">
+                        <div class="snippet-block" style="color: var(--text-muted); text-align: center;">
+                            Awaiting search...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="column" id="right-column">
+                <div class="block-panel">
+                    <div class="block-title">Upload Document</div>
+                    <input type="file" id="file-upload" style="font-size: 13px; margin-right: 10px;">
+                    <button class="btn btn-primary" onclick="uploadDocument()">Upload</button>
+                </div>
+
+                <div class="block-panel">
+                    <div class="block-title">
+                        Documents 
+                        <button class="btn" onclick="loadDocuments()">↻ Refresh</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">
+                                    <input type="checkbox" id="check-all-docs" onclick="toggleAllDocs(this)">
+                                </th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Chunks</th>
+                                <th style="width:120px">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documents-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="block-panel" style="flex-grow: 1;">
+                    <div class="block-title">Loaded Document Snippets</div>
+                    <div id="loaded-snippets-container">
+                        </div>
+                </div>
+            </section>
+            
+        </div>
+    </div>
 </div>
 
-<h2>Documents <button onclick="loadDocuments()" style="font-size:12px">↻ Refresh</button></h2>
-<table>
-    <thead>
-        <tr>
-            <th style="width:32px">✓</th>
-            <th>Name</th>
-            <th style="width:60px">Chunks</th>
-            <th style="width:140px">Actions</th>
-        </tr>
-    </thead>
-    <tbody id="documents-body">
-        <tr><td colspan="5" style="color:#aaa">No documents. Upload one above.</td></tr>
-    </tbody>
-</table>
-<div style="margin-top:6px; font-size:12px; color:#888">
-    Check documents to include in search. Leave all unchecked to search everything.
-</div>
-
-<div id="document-view">
-    <h2>Document: <span id="document-title"></span></h2>
-    <div id="document-content"></div>
-</div>
-
-<h2>Search</h2>
-<div class="form-group">
-    <label>Query:</label>
-    <input type="text" id="search-query" placeholder="Enter search query" style="width:340px">
-</div>
-<div class="form-group">
-    <label>Model:</label>
-    <select id="model-select">
-        <option value="small_model">small_model — 47M · 384-dim · fastest</option>
-        <option value="normal_model">normal_model — 149M · 768-dim · best English</option>
-        <option value="multilingual_model">multilingual_model — 278M · 768-dim · non-English</option>
-    </select>
-</div>
-<div class="form-group">
-    <label>Top K:</label>
-    <input type="number" id="top-k" min="1" max="20" value="5" style="width:60px">
-</div>
-<div class="form-group">
-    <label>Score Threshold:</label>
-    <input type="number" id="score-threshold" min="0" max="1" step="0.05" value="0.4" style="width:70px">
-</div>
-<div class="form-group">
-    <label>Refine results:</label>
-    <input type="checkbox" id="refine">
-    <span class="hint">filter irrelevant sentences within chunks</span>
-</div>
-<div class="form-group" id="score-dif-group">
-    <label>Score Difference:</label>
-    <input type="number" id="score-dif" min="0" max="1" step="0.01" value="0.05" style="width:70px">
-    <span class="hint">sentence threshold = score + dif</span>
-</div>
-<div class="form-group">
-    <label>Deep search:</label>
-    <input type="checkbox" id="deep">
-    <span class="hint">scan borderline chunks at sentence level (slower)</span>
-</div>
-<div class="form-group" id="deep-min-group" style="display:none">
-    <label>Deep min score:</label>
-    <input type="number" id="deep-min" min="0" max="1" step="0.05" value="0.25" style="width:70px">
-    <span class="hint">lower bound for borderline chunks</span>
-</div>
-
-<button onclick="doSearch()">Search</button>
-
-<div id="search-results"></div>
-
-</div> <!-- end #app-content -->
-
-<!-- Auth modal -->
-<div class="modal-overlay" id="auth-modal">
-    <div class="modal">
-        <h3>Account</h3>
-        <div class="modal-tabs">
-            <button class="modal-tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
-            <button class="modal-tab" id="tab-register" onclick="switchTab('register')">Register</button>
+<div id="auth-modal" class="modal-overlay" style="display:none;">
+    <div class="block-panel modal-content">
+        <div class="block-title">
+            <span id="modal-tab-title">Login</span>
+            <button onclick="closeModal()" class="btn" style="border:none; font-weight:bold;">✕</button>
+        </div>
+        
+        <div id="panel-login">
+            <input type="text" id="login-username" placeholder="Username">
+            <input type="password" id="login-password" placeholder="Password">
+            <div id="login-error" style="color:var(--action-red); font-size:12px; margin-bottom:10px; display:none;"></div>
+            <button class="btn btn-primary" id="login-btn" onclick="doLogin()" style="width:100%">Sign in</button>
         </div>
 
-        <div class="tab-panel active" id="panel-login">
-            <div class="field"><label>Username</label>
-                <input type="text" id="login-username" autocomplete="username"></div>
-            <div class="field"><label>Password</label>
-                <input type="password" id="login-password" autocomplete="current-password"
-                    onkeydown="if(event.key==='Enter') doLogin()"></div>
-            <div class="form-error" id="login-error"></div>
-            <div class="modal-footer">
-                <button onclick="closeModal()">Cancel</button>
-                <button onclick="doLogin()" id="login-btn">Sign in</button>
-            </div>
-        </div>
-
-        <div class="tab-panel" id="panel-register">
-            <div class="field"><label>Username</label>
-                <input type="text" id="reg-username"></div>
-            <div class="field"><label>Password</label>
-                <input type="password" id="reg-password"></div>
-            <div class="field"><label>Confirm password</label>
-                <input type="password" id="reg-confirm"
-                    onkeydown="if(event.key==='Enter') doRegister()"></div>
-            <div class="form-error" id="reg-error"></div>
-            <div class="modal-footer">
-                <button onclick="closeModal()">Cancel</button>
-                <button onclick="doRegister()" id="reg-btn">Register</button>
-            </div>
+        <div id="panel-register" style="display:none;">
+            <input type="text" id="reg-username" placeholder="New Username">
+            <input type="password" id="reg-password" placeholder="New Password">
+            <input type="password" id="reg-confirm" placeholder="Confirm Password">
+            <div id="reg-error" style="color:var(--action-red); font-size:12px; margin-bottom:10px; display:none;"></div>
+            <button class="btn btn-primary" id="reg-btn" onclick="doRegister()" style="width:100%">Register</button>
         </div>
     </div>
 </div>
@@ -243,185 +412,191 @@
 <script>
 const GATEWAY = '${GATEWAY_URL}';
 
-let token             = localStorage.getItem('token') || null;
-let currentUser       = JSON.parse(localStorage.getItem('currentUser') || 'null');
-let activeDocumentId  = null;
-let activeDocumentText = '';
+let token = localStorage.getItem('token') || null;
+let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+let openDocumentsMap = new Map(); 
+let currentSearchResults = []; 
 
 // ── Init ──────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
-    if (token && currentUser) showApp();
-    document.addEventListener('click', e => {
-        if (!e.target.closest('#user-menu'))
-            document.getElementById('user-dropdown').classList.remove('open');
-    });
+    if (token && currentUser) {
+        showApp();
+    } else {
+        showGate();
+    }
 });
 
-// ── Auth state ────────────────────────────────────────────────────
-function showApp() {
-    document.getElementById('auth-gate-section').style.display = 'none';
-    document.getElementById('app-content').style.display       = 'block';
-    document.getElementById('auth-btns').style.display         = 'none';
-    document.getElementById('user-menu').style.display         = 'inline-block';
-    document.getElementById('username-display').textContent    = currentUser.username;
-    document.getElementById('auth-status').textContent =
-        `Signed in as ${currentUser.username} (${currentUser.role})`;
-    loadDocuments();
-}
-
-function showGate() {
-    document.getElementById('auth-gate-section').style.display = '';
-    document.getElementById('app-content').style.display       = 'none';
-    document.getElementById('auth-btns').style.display         = '';
-    document.getElementById('user-menu').style.display         = 'none';
-    document.getElementById('auth-status').textContent         = 'Not signed in';
-}
-
-function logout() {
-    token = null; currentUser = null;
-    localStorage.removeItem('token');
-    localStorage.removeItem('currentUser');
-    showGate();
-}
-
-function toggleDropdown() {
-    document.getElementById('user-dropdown').classList.toggle('open');
-}
-
-// ── Modal ─────────────────────────────────────────────────────────
-function openModal(tab) {
-    document.getElementById('auth-modal').classList.add('open');
-    switchTab(tab);
-    setTimeout(() => {
-        document.getElementById(tab === 'login' ? 'login-username' : 'reg-username').focus();
-    }, 80);
-}
-
-function closeModal() {
-    document.getElementById('auth-modal').classList.remove('open');
-    document.getElementById('login-error').classList.remove('visible');
-    document.getElementById('reg-error').classList.remove('visible');
-}
-
-document.getElementById('auth-modal').addEventListener('click', e => {
-    if (e.target === document.getElementById('auth-modal')) closeModal();
-});
-
-function switchTab(tab) {
-    ['login', 'register'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
-        document.getElementById(`panel-${t}`).classList.toggle('active', t === tab);
-    });
-}
-
-// ── Login ─────────────────────────────────────────────────────────
+// ── Auth Logic (The "Missing" Functions) ──────────────────────────
 async function doLogin() {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value;
-    const errEl    = document.getElementById('login-error');
+    const errEl = document.getElementById('login-error');
 
-    if (!username || !password) { showErr(errEl, 'All fields required'); return; }
+    if (!username || !password) { 
+        showErr(errEl, 'All fields required'); 
+        return; 
+    }
 
     const btn = document.getElementById('login-btn');
-    btn.disabled = true; btn.textContent = 'Signing in…';
+    btn.disabled = true; 
+    btn.textContent = 'Signing in…';
+    errEl.style.display = 'none';
 
     try {
         const form = new FormData();
         form.append('username', username);
         form.append('password', password);
 
-        const res  = await fetch(`${GATEWAY}/auth/login`, { method: 'POST', body: form });
+        const res = await fetch(`${GATEWAY}/auth/login`, { method: 'POST', body: form });
         const data = await res.json();
-        if (!res.ok) { showErr(errEl, data.detail || 'Login failed'); return; }
+        
+        if (!res.ok) { 
+            showErr(errEl, data.detail || 'Login failed'); 
+            return; 
+        }
 
         token = data.access_token;
         localStorage.setItem('token', token);
 
-        const me = await apiFetch('/auth/me');
-        currentUser = me;
-        localStorage.setItem('currentUser', JSON.stringify(me));
+        // Fetch user details
+        currentUser = await apiFetch('/auth/me');
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
         closeModal();
         showApp();
     } catch (e) {
         showErr(errEl, 'Connection error');
     } finally {
-        btn.disabled = false; btn.textContent = 'Sign in';
+        btn.disabled = false; 
+        btn.textContent = 'Sign in';
     }
 }
 
-// ── Register ──────────────────────────────────────────────────────
 async function doRegister() {
     const username = document.getElementById('reg-username').value.trim();
     const password = document.getElementById('reg-password').value;
-    const confirm  = document.getElementById('reg-confirm').value;
-    const errEl    = document.getElementById('reg-error');
+    const confirm = document.getElementById('reg-confirm').value;
+    const errEl = document.getElementById('reg-error');
 
     if (!username || !password) { showErr(errEl, 'All fields required'); return; }
-    if (password !== confirm)   { showErr(errEl, 'Passwords do not match'); return; }
+    if (password !== confirm) { showErr(errEl, 'Passwords do not match'); return; }
 
     const btn = document.getElementById('reg-btn');
-    btn.disabled = true; btn.textContent = 'Registering…';
+    btn.disabled = true; 
+    btn.textContent = 'Registering…';
+    errEl.style.display = 'none';
 
     try {
-        const res  = await fetch(`${GATEWAY}/auth/register`, {
+        const res = await fetch(`${GATEWAY}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
         });
         const data = await res.json();
+        
         if (!res.ok) { showErr(errEl, data.detail || 'Registration failed'); return; }
 
-        // auto-login after register
+        // Switch to login tab after success
         document.getElementById('login-username').value = username;
         document.getElementById('login-password').value = password;
         switchTab('login');
         await doLogin();
+
     } catch (e) {
         showErr(errEl, 'Connection error');
     } finally {
-        btn.disabled = false; btn.textContent = 'Register';
+        btn.disabled = false; 
+        btn.textContent = 'Register';
     }
 }
 
-function showErr(el, msg) { el.textContent = msg; el.classList.add('visible'); }
+function showErr(el, msg) {
+    el.textContent = msg;
+    el.style.display = 'block';
+}
 
-// ── API helper ────────────────────────────────────────────────────
+function showGate() {
+    document.getElementById('auth-gate-section').style.display = 'flex';
+    document.getElementById('app-content').style.display = 'none';
+    document.getElementById('auth-btns').style.display = 'inline-block';
+    document.getElementById('user-menu').style.display = 'none';
+    document.getElementById('burger-menu').style.display = 'none';
+}
+
+function logout() {
+    token = null;
+    currentUser = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    showGate();
+}
+
+// ── Modal & Document Logic (Rest of the code) ─────────────────────
+function openModal(tab) {
+    document.getElementById('auth-modal').style.display = 'flex';
+    switchTab(tab);
+}
+function closeModal() {
+    document.getElementById('auth-modal').style.display = 'none';
+}
+function switchTab(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById('modal-tab-title').textContent = isLogin ? 'Login' : 'Register';
+    document.getElementById('panel-login').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('panel-register').style.display = isLogin ? 'none' : 'block';
+}
+
+// ── UI State & Sidebar ────────────────────────────────────────────
+function showApp() {
+    document.getElementById('auth-gate-section').style.display = 'none';
+    document.getElementById('app-content').style.display       = 'block';
+    document.getElementById('auth-btns').style.display         = 'none';
+    document.getElementById('auth-status').style.display       = 'none';
+    document.getElementById('user-menu').style.display         = 'inline-block';
+    document.getElementById('burger-menu').style.display       = 'block';
+    document.getElementById('username-display').textContent    = currentUser.username;
+
+    populateAccountTable();
+    loadDocuments();
+    loadSearchHistory();
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContainer = document.getElementById('mainContainer');
+    
+    sidebar.classList.toggle('active');
+    mainContainer.classList.toggle('sidebar-open');
+}
+
+function populateAccountTable() {
+    const tableBody = document.querySelector('.sidebar-section table tbody');
+    if (!tableBody || !currentUser) return;
+
+    tableBody.innerHTML = `
+        <tr><td>username</td><td>${currentUser.username}</td></tr>
+        <tr><td>role</td><td>${currentUser.role || 'user'}</td></tr>
+        <tr><td>created at</td><td>${currentUser.created_at || 'N/A'}</td></tr>
+        <tr><td>last updated</td><td>${currentUser.updated_at || 'N/A'}</td></tr>
+        <tr><td>password</td><td>********</td></tr>
+    `;
+}
+
+// ── API Helper ────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
     const res = await fetch(`${GATEWAY}${path}`, {
         ...opts,
-        headers: { ...(opts.headers || {}), Authorization: `Bearer ${token}` },
+        headers: { 
+            ...(opts.headers || {}), 
+            Authorization: `Bearer ${token}` 
+        },
     });
-    if (res.status === 401) { logout(); openModal('login'); throw new Error('Session expired'); }
-    return res.json();
-}
-
-// ── Upload ────────────────────────────────────────────────────────
-async function uploadDocument() {
-    const file = document.getElementById('file-upload').files[0];
-    if (!file) { alert('Select a file first.'); return; }
-
-    const btn = document.querySelector('button[onclick="uploadDocument()"]');
-    btn.disabled = true; btn.textContent = 'Uploading & embedding…';
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        const res  = await fetch(`${GATEWAY}/api/upload`, {
-            method: 'POST', body: formData,
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (!res.ok) { alert(data.detail || 'Upload failed'); return; }
-        alert(`Uploaded — chunks: ${data.chunks_stored}`);
-        loadDocuments();
-    } catch (e) {
-        alert('Upload error: ' + e);
-    } finally {
-        btn.disabled = false; btn.textContent = 'Upload';
-        document.getElementById('file-upload').value = '';
+    if (res.status === 401) {
+        logout();
+        openModal('login');
+        throw new Error('Session expired');
     }
+    return res.json();
 }
 
 // ── Documents ─────────────────────────────────────────────────────
@@ -436,40 +611,71 @@ async function loadDocuments() {
 
 function renderTable(docs) {
     const tbody = document.getElementById('documents-body');
+    if (!tbody) return;
+    
     if (!docs.length) {
-        tbody.innerHTML = '<tr><td colspan="4" style="color:#aaa">No documents found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="color:#aaa; text-align:center;">No documents found.</td></tr>';
         return;
     }
-    tbody.innerHTML = docs.map(doc => `
-        <tr id="row-${doc.filename}">
-            <td style="text-align:center">
-                <input type="checkbox" class="doc-checkbox" value="${doc.filename}">
-            </td>
+    
+    tbody.innerHTML = docs.map(doc => {
+        const isOpen = openDocumentsMap.has(doc.filename);
+        const statusColor = doc.status === 'failed' ? 'var(--action-red)' : (doc.status === 'processing' ? 'var(--action-orange)' : '#008000');
+        
+        return `
+        <tr id="row-${doc.filename}" class="${isOpen ? 'active-row' : ''}">
+            <td style="text-align:center"><input type="checkbox" class="doc-checkbox" value="${doc.filename}"></td>
             <td>${doc.filename}</td>
-            <td style="text-align:center">${doc.chunk_count}</td>
-            <td style="display:flex; gap:6px">
-                <button class="btn-render"
-                    onclick="renderDocument('${doc.filename}')">Render</button>
-                <button class="btn-delete"
-                    onclick="deleteDocument('${doc.filename}')">Delete</button>
+            <td style="text-align:center; color:${statusColor}; font-size: 11px;">${doc.status || 'ready'}</td>
+            <td style="text-align:center">${doc.chunk_count || 0}</td>
+            <td style="display:flex; gap:6px; justify-content:flex-end">
+                <button class="btn btn-primary btn-render" onclick="toggleRenderDocument('${doc.filename}', this)">
+                    ${isOpen ? 'Close' : 'Render'}
+                </button>
+                <button class="btn btn-danger" onclick="deleteDocument('${doc.filename}')">Delete</button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 }
 
-async function renderDocument(filename) {
+async function toggleRenderDocument(filename, btn) {
+    const container = document.getElementById('loaded-snippets-container');
+
+    // Close logic
+    if (openDocumentsMap.has(filename)) {
+        openDocumentsMap.delete(filename);
+        document.getElementById(`doc-block-${filename}`)?.remove();
+        document.getElementById(`row-${filename}`)?.classList.remove('active-row');
+        if (btn) btn.textContent = 'Render';
+        return;
+    }
+
+    // Open logic
     try {
         const data = await apiFetch(`/api/document/${encodeURIComponent(filename)}/text`);
-        activeDocumentFilename = filename;
-        activeDocumentText     = data.text;
+        openDocumentsMap.set(filename, data.text);
 
-        document.getElementById('document-title').textContent   = filename;
-        document.getElementById('document-content').textContent = data.text;
-        document.getElementById('document-view').style.display  = 'block';
-
-        document.querySelectorAll('tr').forEach(r => r.classList.remove('active-row'));
+        if (btn) btn.textContent = 'Close';
         document.getElementById(`row-${filename}`)?.classList.add('active-row');
-        document.getElementById('document-view').scrollIntoView({ behavior: 'smooth' });
+
+        const docBlock = document.createElement('div');
+        docBlock.id = `doc-block-${filename}`;
+        docBlock.className = 'snippet-block'; // Using the snippet styling for blocked, sharp design
+        docBlock.innerHTML = `
+            <div class="snippet-header">
+                ${filename}
+                <button class="btn" style="float:right; padding: 0 5px;" 
+                    onclick="toggleRenderDocument('${filename}', document.querySelector('#row-${CSS.escape(filename)} .btn-render'))">✕</button>
+            </div>
+            <div class="doc-content" id="doc-content-${filename}" style="font-size: 13px; white-space: pre-wrap; max-height: 400px; overflow-y: auto;">
+                ${escapeHtml(data.text)}
+            </div>
+        `;
+        container.prepend(docBlock);
+
+        if (currentSearchResults.length > 0) {
+            highlightInDocument(filename, currentSearchResults);
+        }
     } catch (e) {
         if (e.message !== 'Session expired') alert('Render error: ' + e);
     }
@@ -479,11 +685,10 @@ async function deleteDocument(filename) {
     if (!confirm(`Delete document "${filename}"?`)) return;
     try {
         await apiFetch(`/api/document/${encodeURIComponent(filename)}`, { method: 'DELETE' });
-        document.getElementById(`row-${filename}`)?.remove();
-        if (activeDocumentFilename === filename) {
-            document.getElementById('document-view').style.display = 'none';
-            activeDocumentFilename = null;
-            activeDocumentText     = '';
+        loadDocuments();
+        if (openDocumentsMap.has(filename)) {
+            openDocumentsMap.delete(filename);
+            document.getElementById(`doc-block-${filename}`)?.remove();
         }
     } catch (e) {
         if (e.message !== 'Session expired') alert('Delete error: ' + e);
@@ -491,90 +696,162 @@ async function deleteDocument(filename) {
 }
 
 // ── Search ────────────────────────────────────────────────────────
-document.getElementById('refine').addEventListener('change', function() {
-    document.getElementById('score-dif-group').style.display = this.checked ? 'flex' : 'none';
-});
-document.getElementById('deep').addEventListener('change', function() {
-    document.getElementById('deep-min-group').style.display = this.checked ? 'flex' : 'none';
-});
-
-function getCheckedFilenames() {
-    return [...document.querySelectorAll('.doc-checkbox:checked')].map(cb => cb.value);
-}
-
 async function doSearch() {
     const query = document.getElementById('search-query').value.trim();
     if (!query) { alert('Enter a search query.'); return; }
 
-    const btn = document.querySelector('button[onclick="doSearch()"]');
-    const resultsDiv = document.getElementById('search-results');
-    btn.disabled = true; btn.textContent = 'Searching…';
-    resultsDiv.innerHTML = '<p style="color:#888">⏳ Embedding query and searching…</p>';
+    const resultsContainer = document.getElementById('search-results');
+    resultsContainer.innerHTML = '<p style="color:#888; font-size:13px;">⏳ Searching...</p>';
 
-    const model      = document.getElementById('model-select').value;
-    const topK       = document.getElementById('top-k').value;
-    const score      = document.getElementById('score-threshold').value;
-    const refine     = document.getElementById('refine').checked;
-    const dif        = document.getElementById('score-dif').value;
-    const checkedFilenames = getCheckedFilenames();
+    const model   = document.getElementById('model-select').value;
+    const topK    = document.getElementById('top-k').value;
+    const score   = document.getElementById('score-threshold').value;
+    const refine  = document.getElementById('refine').checked;
+    const dif     = document.getElementById('score-dif').value;
+    const deep    = document.getElementById('deep').checked;
+    const deepMin = document.getElementById('deep-min').value;
+    const checkedFilenames = [...document.querySelectorAll('.doc-checkbox:checked')].map(cb => cb.value);
 
     let url = `/api/search?query=${encodeURIComponent(query)}&model=${model}&top_k=${topK}&score=${score}`;
-    if (refine)                    url += `&refine=true&dif=${dif}`;
-    if (checkedFilenames.length)   url += `&filenames=${checkedFilenames.map(encodeURIComponent).join(',')}`;
-    if (document.getElementById('deep').checked)
-        url += `&deep=true&deep_min=${document.getElementById('deep-min').value}`;
+    if (refine)                  url += `&refine=true&dif=${dif}`;
+    if (deep)                    url += `&deep=true&deep_min=${deepMin}`;
+    if (checkedFilenames.length) url += `&filenames=${checkedFilenames.map(encodeURIComponent).join(',')}`;
 
     try {
         const data = await apiFetch(url);
+        currentSearchResults = data.results || [];
+
         displayResults(data);
-        if (activeDocumentText) highlightInDocument(data.results);
+
+        openDocumentsMap.forEach((text, filename) => {
+            const el = document.getElementById(`doc-content-${filename}`);
+            if (el) el.innerHTML = escapeHtml(text);
+            highlightInDocument(filename, currentSearchResults);
+        });
+
+        saveSearchToHistory({ query, date: new Date().toLocaleString(), filenames: checkedFilenames });
+
     } catch (e) {
         if (e.message !== 'Session expired')
-            resultsDiv.innerHTML = `<p style="color:#c00">Search error: ${e}</p>`;
-    } finally {
-        btn.disabled = false; btn.textContent = 'Search';
+            resultsContainer.innerHTML = `<p style="color:var(--action-red)">Search error: ${e}</p>`;
     }
 }
+
+document.getElementById('refine').addEventListener('change', function () {
+    document.getElementById('score-dif-group').style.display = this.checked ? 'flex' : 'none';
+});
+
+document.getElementById('deep').addEventListener('change', function () {
+    document.getElementById('deep-min-group').style.display = this.checked ? 'flex' : 'none';
+});
 
 function displayResults(data) {
-    const div = document.getElementById('search-results');
+    const container = document.getElementById('search-results');
     if (!data.results?.length) {
-        div.innerHTML = '<p style="color:#888">No results found.</p>';
+        container.innerHTML = '<div class="snippet-block" style="color:#888; text-align:center;">No results found.</div>';
         return;
     }
-    div.innerHTML = `
-        <h2>Results
-            <span style="font-size:13px;font-weight:normal;color:#888">
-                ${data.results.length} found · model: ${data.model} · collection: ${data.collection}
-            </span>
-        </h2>
-        ${data.results.map((r, i) => `
-            <div class="result-item">
-                <span class="result-score">score: ${r.score}</span>
-                <strong>#${i+1} · chunk ${r.chunk_index+1}</strong>
-                <span style="font-size:11px; color:#888; margin-left:6px">📄 ${r.filename}</span>
-                <div style="margin-top:5px">${escapeHtml(r.text)}</div>
-            </div>
-        `).join('')}
-    `;
+
+    container.innerHTML = data.results.map(r => `
+        <div class="snippet-block">
+            <div class="snippet-header">${r.filename} <span style="float:right; font-weight:normal;">score: ${r.score}</span></div>
+            <div style="font-size:13px; color:#444;">${escapeHtml(r.text)}</div>
+        </div>
+    `).join('');
 }
 
-function highlightInDocument(results) {
-    if (!results?.length) return;
-    const el = document.getElementById('document-content');
-    let content = activeDocumentText;
-    results.forEach(r => {
+function highlightInDocument(filename, results) {
+    const el = document.getElementById(`doc-content-${filename}`);
+    if (!el) return;
+
+    const fileResults = results.filter(r => r.filename === filename);
+    if (!fileResults.length) return;
+
+    const original = openDocumentsMap.get(filename);
+
+    // Collect all [start, end] ranges against the original plain text
+    const ranges = [];
+    fileResults.forEach(r => {
         const escaped = r.text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        content = content.replace(new RegExp(escaped, 'gi'),
-            match => `<mark class="highlight">${match}</mark>`);
+        const regex = new RegExp(escaped, 'gi');
+        let match;
+        while ((match = regex.exec(original)) !== null) {
+            ranges.push([match.index, match.index + match[0].length]);
+        }
     });
-    el.innerHTML = content;
-    el.querySelector('.highlight')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (!ranges.length) {
+        el.innerHTML = escapeHtml(original);
+        return;
+    }
+
+    // Sort by start position, then merge overlapping ranges
+    ranges.sort((a, b) => a[0] - b[0]);
+    const merged = [ranges[0]];
+    for (let i = 1; i < ranges.length; i++) {
+        const last = merged[merged.length - 1];
+        if (ranges[i][0] <= last[1]) {
+            last[1] = Math.max(last[1], ranges[i][1]); // extend overlap
+        } else {
+            merged.push(ranges[i]);
+        }
+    }
+
+    // Build final HTML in one pass — no regex ever touches already-marked text
+    let result = '';
+    let cursor = 0;
+    merged.forEach(([start, end]) => {
+        result += escapeHtml(original.slice(cursor, start));
+        result += `<mark style="background: #fff3cd; border-bottom: 1px solid #ffeeba;">${escapeHtml(original.slice(start, end))}</mark>`;
+        
+        cursor = end;
+    });
+    result += escapeHtml(original.slice(cursor));
+
+    el.innerHTML = result;
+    el.querySelector('mark')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+// ── Search History ────────────────────────────────────────────────
+async function loadSearchHistory() {
+    const container = document.querySelector('.sidebar-section:last-child');
+    try {
+        const history = await apiFetch('/api/history');
+        const historyHtml = history.map(h => `
+            <div class="history-block">
+                <span>${escapeHtml(h.query)}</span>
+                <button class="btn" onclick="restoreSearch('${escapeHtml(h.query)}')">Load</button>
+            </div>
+        `).join('');
+        container.innerHTML = '<div class="sidebar-header"><span>Search History</span></div>' + historyHtml;
+    } catch (e) {
+        // Silent fail or mock data
+    }
+}
+
+function restoreSearch(query) {
+    const queryInput = document.querySelector('input[placeholder="Enter search query"]');
+    if (queryInput) {
+        queryInput.value = query;
+        doSearch();
+    }
+}
+
+async function saveSearchToHistory(params) {
+    try {
+        await apiFetch('/api/history', { 
+            method: 'POST', 
+            body: JSON.stringify(params),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        loadSearchHistory();
+    } catch (e) {}
+}
+
 </script>
 </body>
 </html>

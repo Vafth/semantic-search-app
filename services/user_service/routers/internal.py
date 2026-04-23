@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header, status
+from fastapi import APIRouter, HTTPException, status
 
 from database import AsyncSessionDep
 from repository.user import get_user_by_id

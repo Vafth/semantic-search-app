@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 class SearchResultRead(BaseModel):
     id:          int
-    filename: int
+    filename:    str
     chunk_text:  str
     chunk_index: int
     score:       float
@@ -17,12 +17,10 @@ class SearchResultRead(BaseModel):
 
 class SearchRequestRead(BaseModel):
     id:            int
-    user_id:       int
-    document_id:   Optional[int] = None
     query:         str
+    filenames:     str | None
     search_params: dict
     created_at:    datetime
-    results:       List[SearchResultRead] = []
 
     model_config = {"from_attributes": True}
 

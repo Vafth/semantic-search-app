@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
+from sqlalchemy import desc
 
 from models.search import SearchRequest, SearchResult
 from schemas.search import SearchHit, SearchParams
@@ -50,7 +52,10 @@ async def get_requests_by_user(
     ) -> list[SearchRequest]:
     
     result = await db.execute(
-        select(SearchRequest).where(SearchRequest.user_id == user_id)
+        select(SearchRequest)
+        .where(SearchRequest.user_id == user_id)
+        .options(selectinload(SearchRequest.results))
+        .order_by(desc(SearchRequest.created_at))
     )
     return list(result.scalars().all())
 

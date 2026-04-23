@@ -183,3 +183,17 @@ async def search(request: Request, claims: ClaimsDep):
         )
     
     return _json_response(resp)
+
+@router.get("/api/history")
+async def search_history(claims: ClaimsDep):
+    
+    internal_headers = build_internal_headers(claims)
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        await _verify_user(claims, client)
+    
+        resp = await client.get(
+            f"{settings.SEARCH_SERVICE_URL}/history",
+            headers = internal_headers,
+        )
+    
+    return _json_response(resp)

@@ -10,7 +10,7 @@ from database import AsyncSessionDep
 from qdrant import QdrantDep
 from repository.vector import query_collection, deep_search, build_filename_filter
 from repository.postgres import save_search_request, save_search_results, get_requests_by_user
-from schemas.search import SearchParams, SearchResponse
+from schemas.search import SearchParams, SearchResponse, SearchRequestRead
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -70,7 +70,7 @@ async def search(
     return SearchResponse(query=params.query, model=params.model, collection=collection, results=results)
 
 
-@router.get("/history", response_model=list[SearchResponse])
+@router.get("/history", response_model=list[SearchRequestRead])
 async def search_history(
     db:        AsyncSessionDep,
     x_user_id: int = Header(...),
