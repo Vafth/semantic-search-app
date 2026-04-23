@@ -21,12 +21,12 @@ class UserCreate(BaseModel):
 
 
 class UserRead(BaseModel):
-    id:         int
     username:   str
     role:       UserRole
-    is_active:  bool
-    created_at: datetime
 
+    created_at: datetime
+    updated_at: Optional[datetime]
+    
     model_config = {"from_attributes": True}
 
 
