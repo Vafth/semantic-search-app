@@ -2,8 +2,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, status
-from passlib.context import CryptContext
-from sqlmodel import select
 import jwt
 import bcrypt
 
@@ -21,8 +19,6 @@ async def authenticate_user(session: AsyncSessionDep, username: str, password: s
 
 
 # ── Password ──────────────────────────────────────────────────────────────────
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_hash_password(password: str) -> str:
     return bcrypt.hashpw(
@@ -46,7 +42,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 
 
 # ── Request identity ──────────────────────────────────────────────────────────
-# Gateway already validated the JWT and injected these headers
 
 async def get_current_user(
     session:     AsyncSessionDep,
