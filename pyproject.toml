@@ -15,3 +15,24 @@ members = [
     "./services/gateway_service",
     "./services/user_service",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "httpx>=0.27",
+    "pytest-httpx>=0.30",
+    "pytest-dotenv>=0.5.2",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+env_files    = [".env.test"]
+testpaths    = [
+    "services/user_service/tests",
+]
+pythonpath   = [
+    "services/user_service",
+]
+addopts      = "--tb=short -v"
+#addopts      = "--tb=short -v -p no:cacheprovider"
