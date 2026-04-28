@@ -9,15 +9,9 @@ from core.security import UserDep, authenticate_user, create_access_token, get_h
 from database import AsyncSessionDep
 from models.user import User, UserRole
 from schemas.user import Token, UserCreate, UserRead, UserUpdate
-from repository.user import (
-    get_user_by_username,
-    get_user_by_id,
-    get_all_users,
-    create_user,
-    update_user_fields,
-)
+from repository.user import get_user_by_username, get_user_by_id, get_all_users, create_user, update_user_fields
 
-router = APIRouter(tags=["user"])
+router = APIRouter()
 
 
 # ── Public ────────────────────────────────────────────────────────────────────
