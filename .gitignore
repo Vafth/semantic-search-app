@@ -6,5 +6,10 @@ wheels/
 *.egg-info
 
 .venv
-
 .env
+
+# Coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
