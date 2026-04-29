@@ -53,4 +53,4 @@ jobs:
           SECRET_KEY: test-secret-not-for-production-x
           ALGORITHM: HS256
           ACCESS_TOKEN_EXPIRE_MINUTES: 5
-        run: uv run pytest services/user_service/tests --cov --cov-report=term-missing
+        run: uv run pytest
