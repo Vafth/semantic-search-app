@@ -600,7 +600,7 @@ wheels = [
 
 [[package]]
 name = "gateway-service"
-version = "0.1.0"
+version = "0.2.0"
 source = { virtual = "services/gateway_service" }
 dependencies = [
     { name = "common" },
