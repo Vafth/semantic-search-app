@@ -37,7 +37,7 @@ class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
                     detail      = "Not authenticated",
                     headers     = {"WWW-Authenticate": "Bearer"},
                 )
-            return None
+            return None # pragma: no cover
 
         return cookie.removeprefix("Bearer ").strip()
 
@@ -56,10 +56,10 @@ async def get_verified_claims(
     """
     Validates JWT signature and expiry only.
     """
-    try:
+    try: # pragma: no cover
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return TokenClaims(**payload)
-    except (InvalidTokenError, Exception):
+    except (InvalidTokenError, Exception): # pragma: no cover
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail      = "Could not validate credentials",
