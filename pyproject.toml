@@ -28,17 +28,19 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 env_files    = [".env.test"]
 testpaths    = [
     "services/user_service/tests",
+    "services/gateway_service/tests",
 ]
 pythonpath   = [
     "services/user_service",
+    "services/gateway_service",
 ]
 #addopts      = "--tb=short -v"
 #addopts     = "--tb=short -v -p no:cacheprovider"
 addopts      = "--tb=short -v --cov --cov-report=term-missing -p no:cacheprovider"
-
 
 [tool.coverage.run]
 source = [

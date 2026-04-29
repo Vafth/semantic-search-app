@@ -2,6 +2,7 @@ import pytest
 
 from httpx import AsyncClient, ASGITransport
 from sqlmodel import SQLModel
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from main import app
@@ -13,7 +14,12 @@ from database import get_async_session
 
 @pytest.fixture
 async def engine():
-    engine = create_async_engine(settings.POSTGRES_URL, echo=False)
+    engine = create_async_engine(
+        settings.POSTGRES_URL, 
+        echo=False,
+        poolclass = NullPool
+    )
+    
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
     yield engine
