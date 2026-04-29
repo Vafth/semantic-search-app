@@ -11,6 +11,9 @@ on:
       - 'services/user_service/**'
       - 'services/common/**'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -45,7 +48,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: uv sync --all-packages --group dev
+        run: uv sync --package user_service --package semantic_search_app --group dev
 
       - name: Run tests
         env:
@@ -53,4 +56,4 @@ jobs:
           SECRET_KEY: test-secret-not-for-production-x
           ALGORITHM: HS256
           ACCESS_TOKEN_EXPIRE_MINUTES: 5
-        run: uv run pytest
+        run: uv run pytest services/user_service/tests
