@@ -5,7 +5,7 @@ on:
     paths:
       - 'services/user_service/**'
       - 'services/common/**'
-      - '.github/workflows/user-service.yml'
+      - '.github/workflows/user_service.yml'
   pull_request:
     paths:
       - 'services/user_service/**'
@@ -51,9 +51,4 @@ jobs:
         run: uv sync --package user_service --package semantic_search_app --group dev
 
       - name: Run tests
-        env:
-          POSTGRES_URL: postgresql+asyncpg://admin:password123@localhost:5432/project_db_test
-          SECRET_KEY: test-secret-not-for-production-x
-          ALGORITHM: HS256
-          ACCESS_TOKEN_EXPIRE_MINUTES: 5
         run: uv run pytest services/user_service/tests
