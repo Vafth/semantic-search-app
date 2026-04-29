@@ -34,11 +34,13 @@ testpaths    = [
     "services/user_service/tests",
     "services/gateway_service/tests",
     "services/model_service/tests",
+    "services/search_service/tests",
 ]
 pythonpath   = [
     "services/user_service",
     "services/gateway_service",
     "services/model_service",
+    "services/search_service",
 ]
 #addopts      = "--tb=short -v"
 #addopts     = "--tb=short -v -p no:cacheprovider"

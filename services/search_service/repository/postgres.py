@@ -27,7 +27,6 @@ async def save_search_request(
     return obj.id
 
 
-
 async def save_search_results(
     db:         AsyncSession,
     request_id: int,
