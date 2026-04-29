@@ -1,5 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import logging
-from sentence_transformers import SentenceTransformer, util
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
+
 from core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -9,6 +14,7 @@ class ModelManager:
         self.models: dict[str, SentenceTransformer] = {}
 
     def load_all(self):
+        from sentence_transformers import SentenceTransformer
         logger.info("Loading IBM Granite models into RAM...")
         self.models["small_model"]        = SentenceTransformer(settings.SMALL_MODEL_ID)
         self.models["normal_model"]       = SentenceTransformer(settings.NORMAL_MODEL_ID)
@@ -21,6 +27,7 @@ class ModelManager:
         return self.models[name]
 
     def compute_similarity(self, model_name: str, text_a: str, text_b: str) -> float:
+        from sentence_transformers import util
         model = self.get_model(model_name)
         vecs = model.encode([text_a, text_b], normalize_embeddings=True)
         score = float(util.cos_sim(vecs[0], vecs[1]).item())
