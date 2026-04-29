@@ -20,14 +20,3 @@ dependencies = [
 
 [tool.uv.sources]
 common = { workspace = true }
-
-[tool.coverage.run]
-source = ["."]
-omit   = ["tests/*", ".venv/*"]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if __name__ == .__main__.:",
-]
-show_missing = true
