@@ -1,0 +1,39 @@
+name: Gateway CI
+
+on:
+  push:
+    paths:
+      - 'services/model_service/**'
+      - 'services/common/**'
+      - '.github/workflows/model_service.yml'
+  pull_request:
+    paths:
+      - 'services/model_service/**'
+      - 'services/common/**'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --package model_service --package semantic_search_app --group dev
+
+      - name: Run tests
+        run: uv run pytest services/model_service/tests
