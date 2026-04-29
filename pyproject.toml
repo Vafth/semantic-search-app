@@ -33,10 +33,12 @@ env_files    = [".env.test"]
 testpaths    = [
     "services/user_service/tests",
     "services/gateway_service/tests",
+    "services/model_service/tests",
 ]
 pythonpath   = [
     "services/user_service",
     "services/gateway_service",
+    "services/model_service",
 ]
 #addopts      = "--tb=short -v"
 #addopts     = "--tb=short -v -p no:cacheprovider"
