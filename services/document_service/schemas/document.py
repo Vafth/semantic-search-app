@@ -18,7 +18,6 @@ class DocumentRead(BaseModel):
 
 
 class DocumentCreate(BaseModel):
-    """Used when client uploads a file"""
     filename:    str
     file_size:    int
     content_type: str

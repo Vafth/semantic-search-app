@@ -38,12 +38,12 @@ async def upload(
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.")
 
+    existing = await get_document_by_name(db, x_user_id, file.filename)
+    if existing:
+        raise HTTPException(status_code=409, detail="Document with this name already exists")
+    
     try:
-        existing = await get_document_by_name(db, x_user_id, file.filename)
-        if existing:
-            raise HTTPException(status_code=409, detail="Document with this name already exists")
-
-        chunks = chunk_text(text)
+        chunks = chunk_text(text)    
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
@@ -53,11 +53,11 @@ async def upload(
         file_size    = len(content),
         content_type = file.content_type,
     )
+
     doc_record = await create_document(db, doc_in, x_user_id)
 
     try:
         # 2. Upload to Qdrant
-        chunks = chunk_text(text)
         await index_document(qdrant, chunks, doc_record.id, file.filename)
             
         # 3. Update PostgreSQL to Ready
@@ -120,7 +120,7 @@ async def delete_document(
         raise HTTPException(status_code=404, detail="Document not found.")
 
     # 2. Delete points from Qdrant
-    failed = delete_points_by_document(qdrant, doc.id)
+    failed = await delete_points_by_document(qdrant, doc.id)
 
     if failed:
         raise HTTPException(status_code=500, detail="Qdrant deletion failed.")

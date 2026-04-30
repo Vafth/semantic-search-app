@@ -54,7 +54,6 @@ async def get_document_by_name(
     return result.scalar_one_or_none()
 
 
-
 async def delete_document_by_id(
         db:     AsyncSession, 
         doc_id: int
