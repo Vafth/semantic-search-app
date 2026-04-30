@@ -1,6 +1,7 @@
 import uuid
 from logging import getLogger
 
+from fastapi import HTTPException
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue, PointStruct
 
@@ -9,24 +10,24 @@ from core.config import settings
 logger = getLogger(__name__)
 
 async def store_chunks(
-    qdrant: QdrantClient,
-    chunks: list[str],
-    vectors: list[list[float]],
-    doc_id: int,
-    filename: str,
+    qdrant:     QdrantClient,
+    chunks:     list[str],
+    vectors:    list[list[float]],
+    doc_id:     int,
+    filename:   str,
     model_name: str,
-    cfg: dict,
+    cfg:        dict,
 ) -> None:
     points = [
         PointStruct(
             id=str(uuid.uuid4()),
             vector=vector,
             payload={
-                "text": chunk,
+                "text":        chunk,
                 "document_id": doc_id,
-                "filename": filename,
+                "filename":    filename,
                 "chunk_index": i,
-                "model": model_name,
+                "model":       model_name,
             }
         )
         for i, (chunk, vector) in enumerate(zip(chunks, vectors))
@@ -69,7 +70,6 @@ async def get_chunks_by_document(qdrant: QdrantClient, document_id: int) -> str:
     return ". ".join(all_sentences)
 
 async def delete_points_by_document(qdrant: QdrantClient, doc_id: int) -> list[str]:
-    """Returns list of failed collections."""
     failed = []
     for _, cfg in settings.COLLECTIONS.items():
         try:
