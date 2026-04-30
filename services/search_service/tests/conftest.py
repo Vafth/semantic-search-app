@@ -1,5 +1,6 @@
 import pytest
 import uuid
+from unittest.mock import patch
 
 from httpx import AsyncClient, ASGITransport
 from sqlmodel import SQLModel
@@ -87,6 +88,19 @@ async def client(db_session, qdrant_client):
 
 
 # ── Seed data ─────────────────────────────────────────────────────────────────
+
+# ── client ────────────────────────────────────────────────────────────────────
+
+@pytest.fixture
+async def client_with_search(client, search_params):
+    with patch("routers.search.embed_query", return_value=[0.1]*384):
+        await client.get(
+            "/search",
+            params  = search_params.model_dump(),
+            headers = {"x-user-id": "1"}
+        )
+
+    return client
 
 # ── vector ────────────────────────────────────────────────────────────────────
 
@@ -201,7 +215,7 @@ async def search_with_multiple_points(seed_factory, multiple_points, search_para
 async def search_params():
     search_params = SearchParams(
         query = "Mars",
-        model = "small_english",
+        model = "small_model",
         top_k = 5,
         score = 0.4,
         dif = 0.0,
@@ -212,5 +226,3 @@ async def search_params():
     )
 
     return search_params
-
-# ── postgres ──────────────────────────────────────────────────────────────────

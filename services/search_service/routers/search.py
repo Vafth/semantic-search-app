@@ -56,7 +56,7 @@ async def search(
         rescued  = await deep_search(qdrant, collection, query_vector, params, existing, search_filter)
         results  = deduplicate_results(results + rescued, params.top_k)
 
-# 6. The search results refining
+    # 6. The search results refining
     if params.refine:
         results = await refine_results(results, params)
         results = deduplicate_results(results, params.top_k)
