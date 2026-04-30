@@ -1,4 +1,4 @@
-from repository.vector import build_filename_filter, query_collection, deep_search
+from repository.vector import build_filename_filter
 from qdrant_client.models import FieldCondition, MatchAny
 
 from schemas.search import SearchHit
