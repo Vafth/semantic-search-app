@@ -4,7 +4,7 @@ import os
 
 class BaseAppSettings(BaseSettings):
     # Shared across user, document, search, gateway
-    POSTGRES_URL: str = "postgresql+asyncpg://admin:password123@localhost:5432/project_db"
+    POSTGRES_URL: str = "postgresql+asyncpg://admin:password@localhost:5432/project"
     SECRET_KEY:   str = "change-me"
     ALGORITHM:    str = "HS256"
 
