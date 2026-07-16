@@ -61,7 +61,7 @@ jobs:
           
       - name: Build and push ${{ matrix.service }}
         uses: docker/build-push-action@v5
-        continue_on_error: ${{ matrix.continue_on_error || false }}
+        continue-on-error: ${{ matrix.continue_on_error || false }}
         with:
           context: .
           file: ${{ matrix.dockerfile }}
