@@ -22,7 +22,7 @@ spec:
   
           envFrom:
             - configMapRef:
-              name: services-config
+                name: services-config
           env:
             - name: TRANSFORMERS_OFFLINE
               value: {{ .Values.modelService.env.transformersOffline | quote }}

@@ -22,7 +22,7 @@ spec:
             - configMapRef:
                 name: services-config
             - secretRef:
-              name: postgres-secret
+                name: postgres-secret
           readinessProbe:
             httpGet:
               path: /health
