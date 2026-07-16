@@ -7,6 +7,7 @@ on:
       - 'services/**'
       - '.github/workflows/ci.yml'
       - 'helm/**'
+      - './**'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
