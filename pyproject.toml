@@ -36,6 +36,7 @@ testpaths    = [
     "services/model_service/tests",
     "services/search_service/tests",
     "services/document_service/tests",
+    "tests",
 ]
 pythonpath   = [
     "services/user_service",

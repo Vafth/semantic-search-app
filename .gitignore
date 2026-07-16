@@ -13,3 +13,9 @@ wheels/
 .coverage.*
 htmlcov/
 coverage.xml
+
+# Terraform
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform/
+terraform/terraform.tfvars

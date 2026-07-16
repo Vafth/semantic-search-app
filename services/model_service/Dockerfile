@@ -1,3 +1,9 @@
+ARG TRANSFORMERS_OFFLINE=0
+ARG HF_DATASETS_OFFLINE=0
+
+ENV TRANSFORMERS_OFFLINE=$TRANSFORMERS_OFFLINE
+ENV HF_DATASETS_OFFLINE=$HF_DATASETS_OFFLINE
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -14,6 +20,9 @@ COPY services/common ./services/common
 
 COPY services/model_service/requirements.txt .
 RUN uv pip install --system --no-cache -r requirements.txt
+
+# Set the cache directory for the build phase
+ENV HF_HOME=/app/.cache/huggingface
 
 RUN python -c "\
 from sentence_transformers import SentenceTransformer; \
