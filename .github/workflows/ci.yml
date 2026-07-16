@@ -1,0 +1,114 @@
+name: CI - Build and Push
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'services/**'
+      - '.github/workflows/ci.yml'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - gateway
+          - user-service
+          - document-service
+          - model-service
+          - search-service
+        include:
+          - service: gateway
+            dockerfile: services/gateway_service/Dockerfile
+            image: semantic-search-app-gateway
+          - service: user-service
+            dockerfile: services/user_service/Dockerfile
+            image: semantic-search-app-user
+            continue_on_error: true
+          - service: document-service
+            dockerfile: services/document_service/Dockerfile
+            image: semantic-search-app-document
+          - service: model-service
+            dockerfile: services/model_service/Dockerfile
+            image: semantic-search-app-model
+            build_args: "TRANSFORMERS_OFFLINE=0 HF_DATASETS_OFFLINE=0"
+          - service: search-service
+            dockerfile: services/search_service/Dockerfile
+            image: semantic-search-app-search
+
+    steps:
+      - name: Set lowercase owner
+        run: |
+          echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        continue_on_error: ${{ matrix.continue_on_error || false }}
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          build_args: ${{ matrix.build_args || '' }}
+          tags: |
+            ghcr.io/${{ env.OWNER }}/${{ matrix.image }}:latest
+            ghcr.io/${{ env.OWNER }}/${{ matrix.image }}:${{ github.sha }}
+
+  update-helm:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: write
+    steps:
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set lowercase owner
+        run: |
+          echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      
+      - name: Install yq
+        run: sudo snap install yq
+
+      - name: Update image tags in helm/values.yaml
+        run: |
+          yq eval '.gateway.image.repository = "ghcr.io/${{ env.OWNER }}/semantic-search-app-gateway"' -i helm/values.yaml
+          yq eval '.gateway.image.tag = "${{ github.sha }}"' -i helm/values.yaml
+
+          yq eval '.documentService.image.repository = "ghcr.io/${{ env.OWNER }}/semantic-search-app-document"' -i helm/values.yaml
+          yq eval '.documentService.image.tag = "${{ github.sha }}"' -i helm/values.yaml
+
+          yq eval '.userService.image.repository = "ghcr.io/${{ env.OWNER }}/semantic-search-app-user"' -i helm/values.yaml
+          yq eval '.userService.image.tag = "${{ github.sha }}"' -i helm/values.yaml
+
+          yq eval '.searchService.image.repository = "ghcr.io/${{ env.OWNER }}/semantic-search-app-search"' -i helm/values.yaml
+          yq eval '.searchService.image.tag = "${{ github.sha }}"' -i helm/values.yaml
+
+          yq eval '.modelService.image.repository = "ghcr.io/${{ env.OWNER }}/semantic-search-app-model"' -i helm/values.yaml
+          yq eval '.modelService.image.tag = "${{ github.sha }}"' -i helm/values.yaml
+
+      - name: Commit updated values.yaml
+        run: |
+          git config user.email "ci@github.com"
+          git config user.name "GitHub Actions"
+          git add helm/values.yaml
+          git diff --staged --quiet || git commit -m "ci: update image tags to ${{ github.sha }}"
+          git push origin develop
