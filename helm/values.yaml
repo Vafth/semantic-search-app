@@ -73,7 +73,7 @@ config:
   # Document Processing
   CHUNK_SIZE: "3"
   CHUNK_OVERLAP: "1"
-  # Security (non-sensitive)
+  # Security
   ALGORITHM: "HS256"
   ACCESS_TOKEN_EXPIRE_MINUTES: "30"
   # Model service
