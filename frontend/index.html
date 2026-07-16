@@ -719,7 +719,7 @@ async function uploadDocument() {
     formData.append('file', file);
 
     try {
-        const data = await apiFetch('/api/document/upload', {
+        const data = await apiFetch('/api/upload', {
             method: 'POST',
             body: formData
         });
