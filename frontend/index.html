@@ -582,6 +582,14 @@ function populateAccountTable() {
     `;
 }
 
+// Error to cleanly catch 401 Unauthorized actions
+class UnauthorizedError extends Error {
+    constructor(message = 'Unauthorized') {
+        super(message);
+        this.name = 'UnauthorizedError';
+    }
+}
+
 // ── API Helper ────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
     const res = await fetch(`${GATEWAY}${path}`, {
@@ -591,12 +599,22 @@ async function apiFetch(path, opts = {}) {
             Authorization: `Bearer ${token}` 
         },
     });
+
+    // If unauthorized, handle redirection and throw our custom error class
     if (res.status === 401) {
         logout();
         openModal('login');
-        throw new Error('Session expired');
+        throw new UnauthorizedError();
     }
-    return res.json();
+
+    const data = await res.json();
+
+    // Handle other errors (400, 409, 500 etc.)
+    if (!res.ok) {
+        throw new Error(data.detail || `HTTP Error ${res.status}`);
+    }
+
+    return data;
 }
 
 // ── Documents ─────────────────────────────────────────────────────
@@ -605,7 +623,9 @@ async function loadDocuments() {
         const docs = await apiFetch('/api/documents');
         renderTable(Array.isArray(docs) ? docs : []);
     } catch (e) {
-        if (e.message !== 'Session expired') console.error(e);
+        if (!(e instanceof UnauthorizedError)) {
+            console.error('Failed to load documents:', e);
+        }
     }
 }
 
@@ -681,6 +701,46 @@ async function toggleRenderDocument(filename, btn) {
     }
 }
 
+// ── Document Upload and Selection Handlers ─────────────────
+async function uploadDocument() {
+    const fileInput = document.getElementById('file-upload');
+    if (!fileInput.files || !fileInput.files[0]) {
+        alert('Please select a .txt file to upload.');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    if (!file.name.endsWith('.txt')) {
+        alert('Only .txt files are supported.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const data = await apiFetch('/api/document/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        alert('Document uploaded and indexed successfully!');
+        fileInput.value = ''; 
+        loadDocuments();      
+    } catch (e) {
+        if (!(e instanceof UnauthorizedError)) {
+            alert('Upload failed: ' + e.message);
+        }
+    }
+}
+
+function toggleAllDocs(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.doc-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = masterCheckbox.checked;
+    });
+}
+
 async function deleteDocument(filename) {
     if (!confirm(`Delete document "${filename}"?`)) return;
     try {
@@ -691,7 +751,9 @@ async function deleteDocument(filename) {
             document.getElementById(`doc-block-${filename}`)?.remove();
         }
     } catch (e) {
-        if (e.message !== 'Session expired') alert('Delete error: ' + e);
+        if (!(e instanceof UnauthorizedError)) {
+            alert('Delete error: ' + e.message);
+        }
     }
 }
 
@@ -715,7 +777,11 @@ async function doSearch() {
     let url = `/api/search?query=${encodeURIComponent(query)}&model=${model}&top_k=${topK}&score=${score}`;
     if (refine)                  url += `&refine=true&dif=${dif}`;
     if (deep)                    url += `&deep=true&deep_min=${deepMin}`;
-    if (checkedFilenames.length) url += `&filenames=${checkedFilenames.map(encodeURIComponent).join(',')}`;
+    
+    if (checkedFilenames.length) {
+        const queryParams = checkedFilenames.map(f => `filenames=${encodeURIComponent(f)}`).join('&');
+        url += `&${queryParams}`;
+    }
 
     try {
         const data = await apiFetch(url);
@@ -732,8 +798,9 @@ async function doSearch() {
         saveSearchToHistory({ query, date: new Date().toLocaleString(), filenames: checkedFilenames });
 
     } catch (e) {
-        if (e.message !== 'Session expired')
-            resultsContainer.innerHTML = `<p style="color:var(--action-red)">Search error: ${e}</p>`;
+        if (!(e instanceof UnauthorizedError)) {
+            resultsContainer.innerHTML = `<p style="color:var(--action-red)">Search error: ${e.message}</p>`;
+        }
     }
 }
 
