@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-service
+spec:
+  replicas: {{ .Values.documentService.replicas }}
+  selector:
+    matchLabels:
+      app: document-service
+  template:
+    metadata:
+      labels:
+        app: document-service
+    spec:
+      containers:
+        - name: document-service
+          image: "{{ .Values.documentService.image.repository }}:{{ .Values.documentService.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.documentService.port }}
+          envFrom:
+            - configMapRef:
+                name: services-config
+            - secretRef:
+              name: postgres-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.documentService.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.documentService.port }}
+            initialDelaySeconds: 40
+            periodSeconds: 15

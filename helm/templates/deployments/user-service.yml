@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: {{ .Values.userService.replicas }}
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: "{{ .Values.userService.image.repository }}:{{ .Values.userService.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.userService.port }}
+          envFrom:
+            - configMapRef:
+                name: services-config
+            - secretRef:
+              name: postgres-secret
+            - secretRef:
+              name: auth-secret 
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.userService.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.userService.port }}
+            initialDelaySeconds: 40
+            periodSeconds: 15

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-service
+spec:
+  replicas: {{ .Values.searchService.replicas }}
+  selector:
+    matchLabels:
+      app: search-service
+  template:
+    metadata:
+      labels:
+        app: search-service
+    spec:
+      containers:
+        - name: search-service
+          image: "{{ .Values.searchService.image.repository }}:{{ .Values.searchService.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.searchService.port }}
+          envFrom:
+            - configMapRef:
+                name: services-config
+            - secretRef:
+              name: postgres-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.searchService.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.searchService.port }}
+            initialDelaySeconds: 40
+            periodSeconds: 15

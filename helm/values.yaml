@@ -1,0 +1,97 @@
+namespace: semantic-search
+
+gateway:
+  image:
+    repository: ghcr.io/vafth/semantic-search-app-gateway # CI_GATEWAY_REPO
+    tag: "latest" # CI_GATEWAY_TAG
+  port: 8080
+  replicas: 1
+
+documentService:
+  image:
+    repository: ghcr.io/vafth/semantic-search-app-document # CI_DOCUMENT_REPO
+    tag: "latest" # CI_DOCUMENT_TAG
+  port: 8002
+  replicas: 1
+
+userService:
+  image:
+    repository: ghcr.io/vafth/semantic-search-app-user # CI_USER_REPO
+    tag: "latest" # CI_USER_TAG
+  port: 8001
+  replicas: 1
+
+searchService:
+  image:
+    repository: ghcr.io/vafth/semantic-search-app-search # CI_SEARCH_REPO
+    tag: "latest" # CI_SEARCH_TAG
+  port: 8003
+  replicas: 1
+
+modelService:
+  image:
+    repository: ghcr.io/vafth/semantic-search-app-model # CI_MODEL_REPO
+    tag: "latest" # CI_MODEL_TAG
+  port: 8000
+  replicas: 1
+  env:
+    transformersOffline: "1"
+    hfDatasetsOffline: "1"
+    hfHome: "/app/.cache/huggingface"
+
+postgres:
+  image:
+    repository: postgres
+    tag: "16-alpine"
+  port: 5432
+  replicas: 1
+  storage: 5Gi
+  env:
+    db: "project_db"
+    user: "admin"
+
+qdrant:
+  image:
+    repository: qdrant/qdrant
+    tag: "v1.17.0"
+  port: 6333
+  replicas: 1
+  storage: 2Gi
+  env:
+    telemetryDisabled: "true"
+    maxWorkers: "2"
+
+hfCache:
+  storage: 4Gi
+
+config:
+  # Qdrant
+  QDRANT_HOST: "qdrant"
+  QDRANT_PORT: "6333"
+
+  # Internal Service URLs
+  MODEL_SERVICE_URL: "http://model-service:8000"
+  USER_SERVICE_URL: "http://user-service:8001"
+  DOCUMENT_SERVICE_URL: "http://document-service:8002"
+  SEARCH_SERVICE_URL: "http://search-service:8003"
+  GATEWAY_URL: "http://gateway:8080"
+  GATEWAY_PORT: "8080"
+
+  # Search Defaults
+  DEF_TOP_K: "5"
+  DEF_MIN_SCORE: "0.4"
+  DEF_MIN_DIF: "0.05"
+
+  # Document Processing
+  CHUNK_SIZE: "3"
+  CHUNK_OVERLAP: "1"
+
+  # Security (non-sensitive)
+  ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+
+  # Model service
+  SMALL_MODEL_ID: "ibm-granite/granite-embedding-small-english-r2"
+  NORMAL_MODEL_ID: "ibm-granite/granite-embedding-english-r2"
+  MULTI_MODEL_ID: "ibm-granite/granite-embedding-278m-multilingual"
+  DEFAULT_BATCH_SIZE: "32"
