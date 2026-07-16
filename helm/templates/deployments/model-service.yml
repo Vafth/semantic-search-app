@@ -12,12 +12,17 @@ spec:
       labels:
         app: model-service
     spec:
+      enableServiceLinks: false
       containers:
         - name: model-service
           image: "{{ .Values.modelService.image.repository }}:{{ .Values.modelService.image.tag }}"
           imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.modelService.port }}
+  
+          envFrom:
+            - configMapRef:
+              name: services-config
           env:
             - name: TRANSFORMERS_OFFLINE
               value: {{ .Values.modelService.env.transformersOffline | quote }}
