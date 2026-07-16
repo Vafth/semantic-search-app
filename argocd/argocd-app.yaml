@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: semantic-search-app
+  namespace: argocd
+spec:
+  destination:
+    namespace: semantic-search
+    server: https://kubernetes.default.svc
+  source:
+    path: ./helm/
+    repoURL: https://github.com/Vafth/semantic-search-app.git
+    targetRevision: develop
+    helm:
+      valueFiles:
+        - values.yaml
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
