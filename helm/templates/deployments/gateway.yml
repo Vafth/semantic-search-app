@@ -22,7 +22,7 @@ spec:
             - configMapRef:
                 name: services-config
             - secretRef:
-              name: auth-secret
+                name: auth-secret
           readinessProbe:
             httpGet:
               path: /health
