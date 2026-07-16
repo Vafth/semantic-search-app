@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-service
+spec:
+  replicas: {{ .Values.modelService.replicas }}
+  selector:
+    matchLabels:
+      app: model-service
+  template:
+    metadata:
+      labels:
+        app: model-service
+    spec:
+      containers:
+        - name: model-service
+          image: "{{ .Values.modelService.image.repository }}:{{ .Values.modelService.image.tag }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.modelService.port }}
+          env:
+            - name: TRANSFORMERS_OFFLINE
+              value: {{ .Values.modelService.env.transformersOffline | quote }}
+            - name: HF_DATASETS_OFFLINE
+              value: {{ .Values.modelService.env.hfDatasetsOffline | quote }}
+            - name: HF_HOME
+              value: {{ .Values.modelService.env.hfHome | quote }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.modelService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.modelService.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 30
