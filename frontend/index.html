@@ -85,8 +85,15 @@
             transition: left 0.3s ease;
             z-index: 10;
             overflow-y: auto;
+
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
+        .column::-webkit-scrollbar {
+            display: none;
+        }
+        
         .sidebar.active {
             left: 0;
         }
@@ -147,6 +154,7 @@
         .content-grid {
             display: flex;
             width: 100%;
+            height: 100%;
             padding: 0 20px;
             gap: 20px;
             transition: margin-left 0.3s ease, width 0.3s ease;
@@ -163,6 +171,15 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            height: 100%;
+            overflow-y: auto;
+    
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .column::-webkit-scrollbar {
+            display: none;
         }
 
         /* Blocks inside columns */
@@ -194,8 +211,26 @@
         .btn-danger { color: var(--action-red); border-color: var(--action-red); }
         .btn:hover { background-color: var(--header-bg); }
 
+        .logout-btn, .signout-btn {
+            background: none; border: 1px solid var(--border-color);
+            cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600;
+        }
+        .logout-btn { font-size: 11px; padding: 3px 8px; color: var(--accent); }
+        .logout-btn:hover { background: white; }
+        .signout-btn { font-size: 12px; padding: 6px 14px; color: var(--action-red); }
+        .signout-btn:hover { background: #fff5f5; border-color: var(--action-red); }
+
+        .hist-delete {
+            background: none; border: none; cursor: pointer; flex-shrink: 0;
+            color: var(--text-muted); font-size: 12px; padding: 0 2px;
+            opacity: 0; transition: opacity 0.12s, color 0.12s;
+            align-self: center;
+        }
+        .hist-item:hover .hist-delete { opacity: 1; }
+        .hist-delete:hover { color: var(--action-red); }
+
         /* Form Inputs */
-        input[type="text"], select {
+        input[type="text"], input[type="password"], select {
             width: 100%;
             padding: 6px;
             border: 1px solid var(--border-color);
@@ -203,8 +238,15 @@
         }
 
         .input-group { margin-bottom: 10px; }
-        .input-group label { display: block; font-size: 12px; margin-bottom: 4px; }
-
+        .input-group label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        
         /* Document Snippets Area */
         .snippet-block {
             background: #fff;
@@ -233,10 +275,163 @@
             width: 350px;
             box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
         }
+
+        /* Uppercase label system */
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        /* Sliders */
+        .slider-wrap { display: flex; align-items: center; gap: 8px; }
+        .slider-val  { font-size: 13px; font-weight: 600; min-width: 34px; text-align: right; }
+        input[type="range"] {
+            flex: 1; height: 3px; background: var(--border-color);
+            appearance: none; -webkit-appearance: none;
+            cursor: pointer; outline: none; accent-color: var(--accent);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 14px;
+            background: var(--accent); cursor: pointer;
+            border: 2px solid #fff; outline: 1px solid var(--accent);
+        }
+
+        /* Model badges */
+        .model-badges { display: flex; gap: 6px; margin-top: 6px; }
+        .model-badge  { font-size: 11px; padding: 2px 7px; border: 1px solid var(--border-color); color: var(--text-muted); background: #fff; }
+        .model-badge.accent { border-color: var(--accent); color: var(--accent); }
+
+        /* Two-column param row */
+        .param-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+
+        /* Section dividers */
+        .param-section-label {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--border-color); margin-bottom: 10px;
+        }
+
+        /* Toggle rows (Refine / Deep search) */
+        .toggle-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 9px 0; border-top: 1px solid var(--border-color); cursor: pointer;
+        }
+        .toggle-row:last-of-type { border-bottom: 1px solid var(--border-color); }
+        .toggle-name { font-size: 13px; font-weight: 500; }
+        .toggle-hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+
+        /* Custom checkbox */
+        input.sp-chk {
+            width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;
+            border: 1.5px solid var(--border-color); background: #fff;
+            appearance: none; -webkit-appearance: none;
+            cursor: pointer; position: relative; transition: background .15s, border-color .15s;
+        }
+        input.sp-chk:checked { background: var(--accent); border-color: var(--accent); }
+        input.sp-chk:checked::after {
+            content: ''; position: absolute; left: 3px; top: 1px;
+            width: 5px; height: 8px;
+            border: 2px solid #fff; border-top: none; border-left: none;
+            transform: rotate(45deg);
+        }
+
+        /* Sub-param panel */
+        .sub-param {
+            margin: 6px 0 4px 26px; padding: 10px 12px;
+            border-left: 3px solid var(--accent);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent);
+            background: #fff;
+        }
+        .sub-param-hint { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+        /* ── Account Card ──────────────────────────────────────── */
+        .user-card {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-panel);
+        }
+        .user-avatar {
+            width: 38px; height: 38px; flex-shrink: 0;
+            background: var(--accent); color: white;
+            font-weight: 700; font-size: 15px;
+            display: flex; align-items: center; justify-content: center;
+            letter-spacing: 0.02em;
+        }
+        .avatar-sm {
+            width: 22px; height: 22px;
+            background: var(--accent); color: white;
+            font-size: 10px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .user-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+        .user-role {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            padding: 2px 6px; background: var(--header-bg);
+            border: 1px solid var(--border-color); color: var(--text-muted);
+        }
+
+        /* ── Account Meta ──────────────────────────────────────── */
+        .meta-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 7px 16px; border-bottom: 1px solid var(--border-color); font-size: 12px;
+        }
+        .meta-row:last-child { border-bottom: none; }
+        .meta-key { color: var(--text-muted); }
+        .meta-val { color: var(--text-main); font-weight: 500; font-family: monospace; font-size: 11px; }
+
+        /* ── Account Dropdown ──────────────────────────────────── */
+        .acct-trigger {
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 10px; background: none;
+            border: 1px solid var(--border-color); cursor: pointer;
+            font-size: 13px; color: var(--text-main);
+        }
+        .acct-trigger:hover { background: var(--bg-panel); }
+        .acct-caret { font-size: 10px; color: var(--text-muted); margin-left: 2px; }
+        .acct-dropdown {
+            position: absolute; right: 0; top: calc(100% + 6px);
+            width: 280px; background: white;
+            border: 1px solid var(--border-color);
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.08);
+            z-index: 200;
+        }
+        .future-hint {
+            padding: 8px 16px; border-top: 1px solid var(--border-color);
+            font-size: 11px; color: var(--text-muted); background: var(--bg-panel);
+            display: flex; gap: 6px; align-items: center;
+        }
+        .hint-dot { width: 6px; height: 6px; background: var(--border-color); flex-shrink: 0; }
+        .dd-footer {
+            padding: 10px 16px; border-top: 1px solid var(--border-color);
+            display: flex; justify-content: flex-end;
+        }
+
+        /* ── History Items ─────────────────────────────────────── */
+        .hist-empty { font-size: 12px; color: var(--text-muted); padding: 4px 0; }
+        .hist-item {
+            display: flex; align-items: flex-start; gap: 9px;
+            padding: 9px 10px; background: white;
+            border: 1px solid var(--border-color); border-left: 3px solid transparent;
+            margin-bottom: 4px; cursor: pointer;
+            transition: border-left-color 0.12s, background 0.12s;
+        }
+        .hist-item:hover { border-left-color: var(--accent); background: #fafafa; }
+        .hist-arrow { color: var(--border-color); font-size: 12px; margin-top: 2px; flex-shrink: 0; transition: color 0.12s; }
+        .hist-item:hover .hist-arrow { color: var(--accent); }
+        .hist-body { flex: 1; min-width: 0; }
+        .hist-query { font-size: 13px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hist-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
     </style>
 </head>
 <body>
-
 <div class="user-bar">
     <div style="display: flex; align-items: center;">
         <button class="hamburger-btn" id="burger-menu" onclick="toggleSidebar()" style="display:none">☰</button>
@@ -251,35 +446,64 @@
             <button onclick="openModal('login')" class="btn btn-primary">Sign in</button>
             <button onclick="openModal('register')" class="btn">Register</button>
         </span>
-        <div id="user-menu" style="display:none;">
-            <span class="user-info" id="username-display" style="margin-right: 10px;"></span>
-            <button class="btn btn-danger" onclick="logout()">Sign out</button>
+        <div id="user-menu" style="display:none; position: relative;">
+            <button class="acct-trigger" id="account-trigger" onclick="toggleAccountMenu()">
+                <div class="avatar-sm" id="topbar-avatar"></div>
+                <span id="username-display"></span>
+                <span class="acct-caret" id="acct-caret">▼</span>
+            </button>
+
+            <div class="acct-dropdown" id="account-dropdown" style="display:none;">
+                <div class="user-card">
+                    <div class="user-avatar" id="dd-avatar"></div>
+                    <div>
+                        <div class="user-name" id="dd-username"></div>
+                        <span class="user-role" id="dd-role"></span>
+                    </div>
+                </div>
+                <div id="account-content"></div>
+                <div class="future-hint">
+                    <div class="hint-dot"></div>
+                    Change password · Manage sessions
+                </div>
+                <div class="dd-footer">
+                    <button class="signout-btn" onclick="logout()">Sign out</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="auth-gate-section" class="main-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-    <div class="block-panel" style="max-width: 400px;">
-        <div class="block-title">Welcome</div>
-        <p style="margin-bottom: 20px; font-size: 14px; color: var(--text-muted);">Sign in or create an account to upload documents and run searches.</p>
-        <button onclick="openModal('login')" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">Sign in</button>
-        <button onclick="openModal('register')" class="btn" style="width: 100%;">Register</button>
+
+<div id="auth-gate-section" class="main-container"
+     style="background-image: radial-gradient(circle, #c8cdd4 1px, transparent 1px);
+            background-size: 18px 18px; background-color: #f0f2f4;
+            display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+  <div class="block-panel" style="max-width: 560px; width: 100%; border-left: 4px solid var(--accent); padding: 36px 40px;">
+    <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">Semantic Search</h2>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.55;">
+      Multi-model vector search over your documents. Sign in to upload, index, and explore.
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 7px; margin-bottom: 28px;">
+      <div style="font-size:13px; color:var(--text-muted);">→&nbsp;&nbsp;IBM Granite &amp; multi-model embeddings</div>
+      <div style="font-size:13px; color:var(--text-muted);">→&nbsp;&nbsp;Document upload &amp; vector indexing</div>
+      <div style="font-size:13px; color:var(--text-muted);">→&nbsp;&nbsp;Full search history with replay</div>
     </div>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="openModal('login')" class="btn"
+        style="flex:1; padding: 10px; background: var(--accent); border-color: var(--accent); color: white; font-weight: 600;">
+        Sign in
+      </button>
+      <button onclick="openModal('register')" class="btn" style="flex:1; padding: 10px;">
+        Register
+      </button>
+    </div>
+  </div>
 </div>
 
 <div id="app-content" style="display: none;">
     <div class="main-container" id="mainContainer">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-header">
-                    <span>Account</span>
-                    <a href="#" class="logout-link" onclick="logout()">Logout</a>
-                </div>
-                <table>
-                    <tbody></tbody>
-                </table>
-            </div>
-
             <div class="sidebar-section">
                 <div class="sidebar-header">
                     <span>Search History</span>
@@ -292,47 +516,93 @@
             <section class="column" id="left-column">
                 <div class="block-panel">
                     <div class="block-title">Search</div>
+
                     <div class="form-group">
-                        <label>Query:</label>
-                        <input type="text" id="search-query" placeholder="Enter search query">
+                        <label>Query</label>
+                        <input type="text" id="search-query" placeholder="Describe what you're looking for...">
                     </div>
+
                     <div class="form-group">
-                        <label>Model:</label>
-                        <select id="model-select">
-                            <option value="small_model">small_model — 47M · 384-dim · fastest</option>
-                            <option value="normal_model">normal_model — 149M · 768-dim · best English</option>
-                            <option value="multilingual_model">multilingual_model — 278M · 768-dim · non-English</option>
+                        <label>Model</label>
+                        <select id="model-select" onchange="updateModelBadges()">
+                            <option value="small_model">small_model</option>
+                            <option value="normal_model" selected>normal_model</option>
+                            <option value="multilingual_model">multilingual_model</option>
                         </select>
+                        <div class="model-badges" id="model-badges">
+                            <span class="model-badge">149M params</span>
+                            <span class="model-badge accent">768-dim</span>
+                            <span class="model-badge">best English</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Top K:</label>
-                        <input type="number" id="top-k" min="1" max="20" value="5" style="width:60px">
+
+                    <hr style="border:none; border-top: 1px solid var(--border-color); margin: 14px 0;">
+                    <div class="param-section-label">Parameters</div>
+
+                    <div class="param-row">
+                        <div class="form-group" style="margin:0;">
+                            <label>Top K</label>
+                            <div class="slider-wrap">
+                                <input type="range" min="1" max="20" value="5" id="top-k"
+                                    oninput="document.getElementById('topk-val').textContent=this.value">
+                                <span class="slider-val" id="topk-val">5</span>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>Score threshold</label>
+                            <div class="slider-wrap">
+                                <input type="range" min="0" max="100" step="5" value="40" id="score-threshold"
+                                    oninput="document.getElementById('thresh-val').textContent=(this.value/100).toFixed(2)">
+                                <span class="slider-val" id="thresh-val">0.40</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Score Threshold:</label>
-                        <input type="number" id="score-threshold" min="0" max="1" step="0.05" value="0.4" style="width:70px">
+
+                    <hr style="border:none; border-top: 1px solid var(--border-color); margin: 14px 0;">
+                    <div class="param-section-label">Advanced</div>
+
+                    <div class="toggle-row" onclick="toggleCheck('refine')">
+                        <input type="checkbox" class="sp-chk" id="refine"
+                            onclick="event.stopPropagation()">
+                        <div>
+                            <div class="toggle-name">Refine results</div>
+                            <div class="toggle-hint">Filter irrelevant sentences within chunks</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Refine results:</label>
-                        <input type="checkbox" id="refine">
-                        <span class="hint">filter irrelevant sentences within chunks</span>
+                    <div id="score-dif-group" class="sub-param" style="display:none;">
+                        <label>Score difference</label>
+                        <div class="slider-wrap">
+                            <input type="range" min="0" max="100" step="1" value="5" id="score-dif"
+                                oninput="document.getElementById('scoredif-val').textContent=(this.value/100).toFixed(2)">
+                            <span class="slider-val" id="scoredif-val">0.05</span>
+                        </div>
+                        <div class="sub-param-hint">sentence threshold = chunk score + difference</div>
                     </div>
-                    <div class="form-group" id="score-dif-group" style="display:none">
-                        <label>Score Difference:</label>
-                        <input type="number" id="score-dif" min="0" max="1" step="0.01" value="0.05" style="width:70px">
-                        <span class="hint">sentence threshold = score + dif</span>
+
+                    <div class="toggle-row" onclick="toggleCheck('deep')">
+                        <input type="checkbox" class="sp-chk" id="deep"
+                            onclick="event.stopPropagation()">
+                        <div>
+                            <div class="toggle-name">Deep search</div>
+                            <div class="toggle-hint">Scan borderline chunks at sentence level (slower)</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Deep search:</label>
-                        <input type="checkbox" id="deep">
-                        <span class="hint">scan borderline chunks at sentence level (slower)</span>
+                    <div id="deep-min-group" class="sub-param" style="display:none;">
+                        <label>Deep min score</label>
+                        <div class="slider-wrap">
+                            <input type="range" min="0" max="100" step="5" value="25" id="deep-min"
+                                oninput="document.getElementById('deepmin-val').textContent=(this.value/100).toFixed(2)">
+                            <span class="slider-val" id="deepmin-val">0.25</span>
+                        </div>
+                        <div class="sub-param-hint">lower bound for borderline chunk inclusion</div>
                     </div>
-                    <div class="form-group" id="deep-min-group" style="display:none">
-                        <label>Deep min score:</label>
-                        <input type="number" id="deep-min" min="0" max="1" step="0.05" value="0.25" style="width:70px">
-                        <span class="hint">lower bound for borderline chunks</span>
-                    </div>
-                    <button class="btn btn-primary" onclick="doSearch()" style="margin-top:10px;">Search</button>
+
+                    <button class="btn btn-primary" onclick="doSearch()"
+                        style="width:100%; margin-top:14px; padding:11px; background:var(--accent);
+                            color:white; border-color:var(--accent); font-weight:700;
+                            text-transform:uppercase; letter-spacing:0.04em;">
+                        Search
+                    </button>
                 </div>
 
                 <div class="block-panel" style="flex-grow: 1;" id="search-results-panel">
@@ -385,27 +655,48 @@
 </div>
 
 <div id="auth-modal" class="modal-overlay" style="display:none;">
-    <div class="block-panel modal-content">
-        <div class="block-title">
-            <span id="modal-tab-title">Login</span>
-            <button onclick="closeModal()" class="btn" style="border:none; font-weight:bold;">✕</button>
-        </div>
-        
-        <div id="panel-login">
-            <input type="text" id="login-username" placeholder="Username">
-            <input type="password" id="login-password" placeholder="Password">
-            <div id="login-error" style="color:var(--action-red); font-size:12px; margin-bottom:10px; display:none;"></div>
-            <button class="btn btn-primary" id="login-btn" onclick="doLogin()" style="width:100%">Sign in</button>
-        </div>
+  <div class="modal-content" style="width: 460px;">
 
-        <div id="panel-register" style="display:none;">
-            <input type="text" id="reg-username" placeholder="New Username">
-            <input type="password" id="reg-password" placeholder="New Password">
-            <input type="password" id="reg-confirm" placeholder="Confirm Password">
-            <div id="reg-error" style="color:var(--action-red); font-size:12px; margin-bottom:10px; display:none;"></div>
-            <button class="btn btn-primary" id="reg-btn" onclick="doRegister()" style="width:100%">Register</button>
-        </div>
+    <!-- Tab bar -->
+    <div style="display:flex; border-bottom: 2px solid var(--border-color); background: var(--bg-panel);">
+      <button id="modal-tab-login" onclick="switchTab('login')"
+        style="flex:1; padding:13px; background:white; border:none; border-bottom:2px solid var(--accent);
+               margin-bottom:-2px; font-size:13px; font-weight:600; cursor:pointer; color:var(--text-main);">
+        Sign in
+      </button>
+      <button id="modal-tab-register" onclick="switchTab('register')"
+        style="flex:1; padding:13px; background:none; border:none; border-bottom:2px solid transparent;
+               margin-bottom:-2px; font-size:13px; font-weight:500; cursor:pointer; color:var(--text-muted);">
+        Register
+      </button>
+      <button onclick="closeModal()" style="padding: 0 16px; background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:16px;">✕</button>
     </div>
+
+    <div style="padding: 24px 28px 28px;">
+      <!-- Login -->
+      <div id="panel-login">
+        <div class="input-group"><label>Username</label><input type="text" id="login-username" placeholder="your-username"></div>
+        <div class="input-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+        <div id="login-error" style="display:none; font-size:12px; color:var(--action-red); padding:7px 10px; border:1px solid #f5c6cb; background:#fff5f5; margin-bottom:12px;"></div>
+        <button id="login-btn" onclick="doLogin()" class="btn btn-primary" style="width:100%; padding:10px; background:var(--accent); color:white; border-color:var(--accent); font-weight:600;">Sign in</button>
+        <p style="text-align:center; margin-top:14px; font-size:12px; color:var(--text-muted);">
+          No account? <a onclick="switchTab('register')" style="color:var(--accent); cursor:pointer;">Register</a>
+        </p>
+      </div>
+
+      <!-- Register -->
+      <div id="panel-register" style="display:none;">
+        <div class="input-group"><label>Username</label><input type="text" id="reg-username" placeholder="choose-a-username"></div>
+        <div class="input-group"><label>Password</label><input type="password" id="reg-password" placeholder="••••••••"></div>
+        <div class="input-group"><label>Confirm password</label><input type="password" id="reg-confirm" placeholder="••••••••"></div>
+        <div id="reg-error" style="display:none; font-size:12px; color:var(--action-red); padding:7px 10px; border:1px solid #f5c6cb; background:#fff5f5; margin-bottom:12px;"></div>
+        <button id="reg-btn" onclick="doRegister()" class="btn btn-primary" style="width:100%; padding:10px; background:var(--accent); color:white; border-color:var(--accent); font-weight:600;">Create account</button>
+        <p style="text-align:center; margin-top:14px; font-size:12px; color:var(--text-muted);">
+          Already registered? <a onclick="switchTab('login')" style="color:var(--accent); cursor:pointer;">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -415,6 +706,13 @@ let token = localStorage.getItem('token') || null;
 let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 let openDocumentsMap = new Map(); 
 let currentSearchResults = []; 
+
+function dataToString(raw_date) {
+    return new Date(raw_date).toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+}
 
 // ── Init ──────────────────────────────────────────────────────────
 window.addEventListener('load', () => {
@@ -474,8 +772,8 @@ async function doLogin() {
 async function doRegister() {
     const username = document.getElementById('reg-username').value.trim();
     const password = document.getElementById('reg-password').value;
-    const confirm = document.getElementById('reg-confirm').value;
-    const errEl = document.getElementById('reg-error');
+    const confirm  = document.getElementById('reg-confirm').value;
+    const errEl    = document.getElementById('reg-error');
 
     if (!username || !password) { showErr(errEl, 'All fields required'); return; }
     if (password !== confirm) { showErr(errEl, 'Passwords do not match'); return; }
@@ -540,9 +838,16 @@ function closeModal() {
 }
 function switchTab(tab) {
     const isLogin = tab === 'login';
-    document.getElementById('modal-tab-title').textContent = isLogin ? 'Login' : 'Register';
     document.getElementById('panel-login').style.display = isLogin ? 'block' : 'none';
     document.getElementById('panel-register').style.display = isLogin ? 'none' : 'block';
+    const tl = document.getElementById('modal-tab-login');
+    const tr = document.getElementById('modal-tab-register');
+    tl.style.cssText = tl.style.cssText.replace(/border-bottom:[^;]+/, `border-bottom:2px solid ${isLogin ? 'var(--accent)' : 'transparent'}`);
+    tr.style.cssText = tr.style.cssText.replace(/border-bottom:[^;]+/, `border-bottom:2px solid ${!isLogin ? 'var(--accent)' : 'transparent'}`);
+    tl.style.background = isLogin ? 'white' : 'none';
+    tr.style.background = !isLogin ? 'white' : 'none';
+    tl.style.color = isLogin ? 'var(--text-main)' : 'var(--text-muted)';
+    tr.style.color = !isLogin ? 'var(--text-main)' : 'var(--text-muted)';
 }
 
 // ── UI State & Sidebar ────────────────────────────────────────────
@@ -555,7 +860,7 @@ function showApp() {
     document.getElementById('burger-menu').style.display       = 'block';
     document.getElementById('username-display').textContent    = currentUser.username;
 
-    populateAccountTable();
+    populateAccountSection();
     loadDocuments();
     loadSearchHistory();
 }
@@ -568,18 +873,57 @@ function toggleSidebar() {
     mainContainer.classList.toggle('sidebar-open');
 }
 
-function populateAccountTable() {
-    const tableBody = document.querySelector('.sidebar-section table tbody');
-    if (!tableBody || !currentUser) return;
+function populateAccountSection() {
+    if (!currentUser) return;
+    const initials = currentUser.username.slice(0, 2).toUpperCase();
 
-    tableBody.innerHTML = `
-        <tr><td>username</td><td>${currentUser.username}</td></tr>
-        <tr><td>role</td><td>${currentUser.role || 'user'}</td></tr>
-        <tr><td>created at</td><td>${currentUser.created_at || 'N/A'}</td></tr>
-        <tr><td>last updated</td><td>${currentUser.updated_at || 'N/A'}</td></tr>
-        <tr><td>password</td><td>********</td></tr>
+    const date_created_at = dataToString(currentUser.created_at)
+    const date_updated_at = dataToString(currentUser.updated_at)
+
+    document.getElementById('topbar-avatar').textContent = initials;
+    document.getElementById('username-display').textContent = currentUser.username;
+    document.getElementById('dd-avatar').textContent = initials;
+    document.getElementById('dd-username').textContent = currentUser.username;
+    document.getElementById('dd-role').textContent = currentUser.role || 'user';
+
+    document.getElementById('account-content').innerHTML = `
+        <div class="meta-row" style="display:flex; justify-content:space-between; padding:7px 16px; border-bottom:1px solid var(--border-color); font-size:12px;">
+            <span style="color:var(--text-muted)">Created</span>
+            <span style="font-family:monospace; font-size:11px;">${date_created_at || '—'}</span>
+        </div>
+        <div class="meta-row" style="display:flex; justify-content:space-between; padding:7px 16px; font-size:12px;">
+            <span style="color:var(--text-muted)">Updated</span>
+            <span style="font-family:monospace; font-size:11px;">${date_updated_at || '—'}</span>
+        </div>
     `;
 }
+
+let accountMenuOpen = false;
+function toggleAccountMenu() {
+    accountMenuOpen = !accountMenuOpen;
+    document.getElementById('account-dropdown').style.display = accountMenuOpen ? 'block' : 'none';
+    document.getElementById('acct-caret').textContent = accountMenuOpen ? '▲' : '▼';
+}
+
+// Toggle logic
+var modelMeta = {
+    small_model: ['47M params', '384-dim', 'fastest'],
+    normal_model: ['149M params', '768-dim', 'best English'],
+    multilingual_model: ['278M params', '768-dim', 'non-English']
+};
+function updateModelBadges() {
+    var v = document.getElementById('model-select').value;
+    if (!modelMeta[v]) return;
+    document.getElementById('model-badges').innerHTML = modelMeta[v]
+        .map((t, i) => `<span class="model-badge${i===1?' accent':''}">${t}</span>`)
+        .join('');
+}
+function toggleCheck(chkId) {
+    var el = document.getElementById(chkId);
+    el.checked = !el.checked;
+    el.dispatchEvent(new Event('click'));
+}
+
 
 // Error to cleanly catch 401 Unauthorized actions
 class UnauthorizedError extends Error {
@@ -604,6 +948,11 @@ async function apiFetch(path, opts = {}) {
         logout();
         openModal('login');
         throw new UnauthorizedError();
+    }
+
+    if (res.status === 204 || res.headers.get('content-length') === '0') {
+        if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+        return null;
     }
 
     const data = await res.json();
@@ -662,29 +1011,29 @@ async function toggleRenderDocument(filename, btn) {
 
     // Close logic
     if (openDocumentsMap.has(filename)) {
+        const docData = openDocumentsMap.get(filename);
+        if (docData.btn) docData.btn.textContent = 'Render';
         openDocumentsMap.delete(filename);
         document.getElementById(`doc-block-${filename}`)?.remove();
         document.getElementById(`row-${filename}`)?.classList.remove('active-row');
-        if (btn) btn.textContent = 'Render';
         return;
     }
 
     // Open logic
     try {
         const data = await apiFetch(`/api/document/${encodeURIComponent(filename)}/text`);
-        openDocumentsMap.set(filename, data.text);
-
+        openDocumentsMap.set(filename, { text: data.text, btn: btn });
         if (btn) btn.textContent = 'Close';
         document.getElementById(`row-${filename}`)?.classList.add('active-row');
 
         const docBlock = document.createElement('div');
         docBlock.id = `doc-block-${filename}`;
-        docBlock.className = 'snippet-block'; // Using the snippet styling for blocked, sharp design
+        docBlock.className = 'snippet-block';
         docBlock.innerHTML = `
             <div class="snippet-header">
                 ${filename}
-                <button class="btn" style="float:right; padding: 0 5px;" 
-                    onclick="toggleRenderDocument('${filename}', document.querySelector('#row-${CSS.escape(filename)} .btn-render'))">✕</button>
+                <button class="btn" style="float:right; padding: 0 5px;"
+                    onclick="toggleRenderDocument('${filename}')">✕</button>
             </div>
             <div class="doc-content" id="doc-content-${filename}" style="font-size: 13px; white-space: pre-wrap; max-height: 400px; overflow-y: auto;">
                 ${escapeHtml(data.text)}
@@ -714,6 +1063,19 @@ async function uploadDocument() {
         return;
     }
 
+    // Optimistic row — appears immediately in the table
+    const tbody = document.getElementById('documents-body');
+    const tempRow = document.createElement('tr');
+    tempRow.id = 'upload-pending-row';
+    tempRow.innerHTML = `
+        <td style="text-align:center"><input type="checkbox" disabled></td>
+        <td>${file.name}</td>
+        <td style="text-align:center; color:var(--action-orange); font-size:11px;">uploading…</td>
+        <td style="text-align:center">—</td>
+        <td></td>
+    `;
+    tbody.insertBefore(tempRow, tbody.firstChild);
+
     const formData = new FormData();
     formData.append('file', file);
 
@@ -730,6 +1092,9 @@ async function uploadDocument() {
         if (!(e instanceof UnauthorizedError)) {
             alert('Upload failed: ' + e.message);
         }
+    } finally {
+        document.getElementById('upload-pending-row')?.remove();
+        loadDocuments();
     }
 }
 
@@ -766,11 +1131,11 @@ async function doSearch() {
 
     const model   = document.getElementById('model-select').value;
     const topK    = document.getElementById('top-k').value;
-    const score   = document.getElementById('score-threshold').value;
+    const score   = (document.getElementById('score-threshold').value / 100).toFixed(2);
     const refine  = document.getElementById('refine').checked;
-    const dif     = document.getElementById('score-dif').value;
+    const dif     = (document.getElementById('score-dif').value / 100).toFixed(2);
     const deep    = document.getElementById('deep').checked;
-    const deepMin = document.getElementById('deep-min').value;
+    const deepMin = (document.getElementById('deep-min').value / 100).toFixed(2);
     const checkedFilenames = [...document.querySelectorAll('.doc-checkbox:checked')].map(cb => cb.value);
 
     let url = `/api/search?query=${encodeURIComponent(query)}&model=${model}&top_k=${topK}&score=${score}`;
@@ -787,14 +1152,13 @@ async function doSearch() {
         currentSearchResults = data.results || [];
 
         displayResults(data);
-
-        openDocumentsMap.forEach((text, filename) => {
+        loadSearchHistory();
+        
+        openDocumentsMap.forEach((entry, filename) => {
             const el = document.getElementById(`doc-content-${filename}`);
-            if (el) el.innerHTML = escapeHtml(text);
+            if (el) el.innerHTML = escapeHtml(entry.text);
             highlightInDocument(filename, currentSearchResults);
         });
-
-        saveSearchToHistory({ query, date: new Date().toLocaleString(), filenames: checkedFilenames });
 
     } catch (e) {
         if (!(e instanceof UnauthorizedError)) {
@@ -804,11 +1168,11 @@ async function doSearch() {
 }
 
 document.getElementById('refine').addEventListener('change', function () {
-    document.getElementById('score-dif-group').style.display = this.checked ? 'flex' : 'none';
+    document.getElementById('score-dif-group').style.display = this.checked ? 'block' : 'none';
 });
 
 document.getElementById('deep').addEventListener('change', function () {
-    document.getElementById('deep-min-group').style.display = this.checked ? 'flex' : 'none';
+    document.getElementById('deep-min-group').style.display = this.checked ? 'block' : 'none';
 });
 
 function displayResults(data) {
@@ -833,7 +1197,8 @@ function highlightInDocument(filename, results) {
     const fileResults = results.filter(r => r.filename === filename);
     if (!fileResults.length) return;
 
-    const original = openDocumentsMap.get(filename);
+    const original = openDocumentsMap.get(filename)?.text;
+    if (original == undefined) return;
 
     // Collect all [start, end] ranges against the original plain text
     const ranges = [];
@@ -857,19 +1222,18 @@ function highlightInDocument(filename, results) {
     for (let i = 1; i < ranges.length; i++) {
         const last = merged[merged.length - 1];
         if (ranges[i][0] <= last[1]) {
-            last[1] = Math.max(last[1], ranges[i][1]); // extend overlap
+            last[1] = Math.max(last[1], ranges[i][1]);
         } else {
             merged.push(ranges[i]);
         }
     }
 
-    // Build final HTML in one pass — no regex ever touches already-marked text
+    // Build final HTML
     let result = '';
     let cursor = 0;
     merged.forEach(([start, end]) => {
         result += escapeHtml(original.slice(cursor, start));
         result += `<mark style="background: #fff3cd; border-bottom: 1px solid #ffeeba;">${escapeHtml(original.slice(start, end))}</mark>`;
-        
         cursor = end;
     });
     result += escapeHtml(original.slice(cursor));
@@ -884,39 +1248,114 @@ function escapeHtml(str) {
 
 // ── Search History ────────────────────────────────────────────────
 async function loadSearchHistory() {
-    const container = document.querySelector('.sidebar-section:last-child');
+    const container = document.getElementById('search-history-container');
+    
     try {
         const history = await apiFetch('/api/history');
-        const historyHtml = history.map(h => `
-            <div class="history-block">
-                <span>${escapeHtml(h.query)}</span>
-                <button class="btn" onclick="restoreSearch('${escapeHtml(h.query)}')">Load</button>
-            </div>
-        `).join('');
-        container.innerHTML = '<div class="sidebar-header"><span>Search History</span></div>' + historyHtml;
-    } catch (e) {
-        // Silent fail or mock data
-    }
-}
 
-function restoreSearch(query) {
-    const queryInput = document.querySelector('input[placeholder="Enter search query"]');
-    if (queryInput) {
-        queryInput.value = query;
-        doSearch();
-    }
-}
+        if (!history || history.length === 0) {
+            container.innerHTML = '<div class="hist-empty">No history yet.</div>';
+            return;
+        }
 
-async function saveSearchToHistory(params) {
-    try {
-        await apiFetch('/api/history', { 
-            method: 'POST', 
-            body: JSON.stringify(params),
-            headers: { 'Content-Type': 'application/json' }
+        // Clear existing content
+        container.innerHTML = '';
+
+        history.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'hist-item';
+            div.onclick = () => replayHistoryItem(item);
+
+            const dateStr = dataToString(item.created_at)
+
+            div.innerHTML = `
+                <span class="hist-arrow">→</span>
+                <div class="hist-body">
+                    <div class="hist-query">${escapeHtml(item.query)}</div>
+                    <div class="hist-date">${dateStr}</div>
+                </div>
+                <button class="hist-delete" onclick="event.stopPropagation(); deleteHistoryItem(${item.id})">✕</button>
+            `;
+
+            container.appendChild(div);
         });
-        loadSearchHistory();
-    } catch (e) {}
+
+    } catch (e) {
+        if (!(e instanceof UnauthorizedError)) {
+            console.error('Failed to load history:', e);
+            container.innerHTML = '<div class="hist-empty" style="color: var(--action-red);">Failed to load history.</div>';
+        }
+    }
 }
+
+function restoreSearchParams(params) {
+    if (!params) return;
+
+    if (params.model) {
+        document.getElementById('model-select').value = params.model;
+        updateModelBadges();
+    }
+    if (params.top_k !== undefined) {
+        document.getElementById('top-k').value = params.top_k;
+        document.getElementById('topk-val').textContent = params.top_k;
+    }
+    if (params.score !== undefined) {
+        document.getElementById('score-threshold').value = Math.round(params.score * 100);
+        document.getElementById('thresh-val').textContent = params.score.toFixed(2);
+    }
+
+    const refineEl = document.getElementById('refine');
+    refineEl.checked = !!params.refine;
+    document.getElementById('score-dif-group').style.display = params.refine ? 'block' : 'none';
+    if (params.dif !== undefined) {
+        document.getElementById('score-dif').value = Math.round(params.dif * 100);
+        document.getElementById('scoredif-val').textContent = params.dif.toFixed(2);
+    }
+
+    const deepEl = document.getElementById('deep');
+    deepEl.checked = !!params.deep;
+    document.getElementById('deep-min-group').style.display = params.deep ? 'block' : 'none';
+    if (params.deep_min !== undefined) {
+        document.getElementById('deep-min').value = Math.round(params.deep_min * 100);
+        document.getElementById('deepmin-val').textContent = params.deep_min.toFixed(2);
+    }
+}
+
+function replayHistoryItem(item) {
+    document.getElementById('search-query').value = item.query;
+    restoreSearchParams(item.search_params);
+
+    // Map stored schema → display format
+    currentSearchResults = (item.results || []).map(r => ({
+        filename: r.filename,
+        text:     r.chunk_text,
+        score:    r.score,
+    }));
+
+    displayResults({ results: currentSearchResults });
+
+    // Re-highlight any already-open documents; silently ignore missing ones
+    openDocumentsMap.forEach((_, filename) => {
+        try { highlightInDocument(filename, currentSearchResults); } catch (_) {}
+    });
+}
+
+async function deleteHistoryItem(id) {
+    try {
+        await apiFetch(`/api/history/${id}`, { method: 'DELETE' });
+        loadSearchHistory();
+    } catch (e) {
+        if (!(e instanceof UnauthorizedError)) console.error('Delete history failed:', e);
+    }
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#user-menu')) {
+        document.getElementById('account-dropdown').style.display = 'none';
+        document.getElementById('acct-caret').textContent = '▼';
+        accountMenuOpen = false;
+    }
+});
 
 </script>
 </body>

@@ -68,3 +68,20 @@ async def get_results_by_request(
         select(SearchResult).where(SearchResult.request_id == request_id)
     )
     return list(result.scalars().all())
+
+async def delete_request_by_user(
+    db:         AsyncSession,
+    request_id: int,
+    user_id:    int,
+) -> None:
+    result = await db.execute(
+        select(SearchRequest).where(
+            SearchRequest.id      == request_id,
+            SearchRequest.user_id == user_id,
+        )
+    )
+    obj = result.scalar_one_or_none()
+    if obj:
+        await db.delete(obj)
+        await db.commit()
+    # cascade_delete=True

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Request, UploadFile, File, HTTPException, status, Response
 from fastapi.responses import JSONResponse, FileResponse
 import httpx
 
@@ -197,3 +197,17 @@ async def search_history(claims: ClaimsDep):
         )
     
     return _json_response(resp)
+
+@router.delete("/api/history/{request_id}", status_code=204)
+async def delete_history(request_id: int, claims: ClaimsDep):
+
+    internal_headers = build_internal_headers(claims)
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        await _verify_user(claims, client)
+
+        resp = await client.delete(
+            f"{settings.SEARCH_SERVICE_URL}/history/{request_id}",
+            headers=internal_headers,
+        )
+
+    return Response(status_code=204)
