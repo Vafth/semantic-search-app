@@ -21,6 +21,7 @@ class SearchRequestRead(BaseModel):
     filenames:     str | None
     search_params: dict
     created_at:    datetime
+    results:       list[SearchResultRead] = []
 
     model_config = {"from_attributes": True}
 

@@ -9,7 +9,7 @@ from core.processor import embed_query, deduplicate_results, refine_results
 from database import AsyncSessionDep
 from qdrant import QdrantDep
 from repository.vector import query_collection, deep_search, build_filename_filter
-from repository.postgres import save_search_request, save_search_results, get_requests_by_user
+from repository.postgres import save_search_request, save_search_results, get_requests_by_user, delete_request_by_user
 from schemas.search import SearchParams, SearchResponse, SearchRequestRead
 
 logger = logging.getLogger(__name__)
@@ -76,3 +76,12 @@ async def search_history(
     x_user_id: int = Header(...),
 ):
     return await get_requests_by_user(db, x_user_id)
+
+
+@router.delete("/history/{request_id}", status_code=204)
+async def delete_search_request(
+    request_id: int,
+    db:         AsyncSessionDep,
+    x_user_id:  int = Header(...),
+):
+    await delete_request_by_user(db, request_id, x_user_id)
