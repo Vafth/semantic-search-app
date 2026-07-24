@@ -1,0 +1,23 @@
+The first mechanical computing device was created by Charles Babbage in the 1820s. He called it the Difference Engine, and it was designed to calculate mathematical tables automatically. Ada Lovelace, working alongside Babbage, wrote what many historians consider the first computer program, making her a pioneering figure in the history of computation.
+
+During the Second World War, Alan Turing led a team at Bletchley Park in England that cracked the German Enigma cipher machine. This work is estimated to have shortened the war by at least two years and saved millions of lives. Turing later proposed a theoretical model of computation known as the Turing machine, which became the foundation of modern computer science.
+
+The first fully electronic computer, ENIAC, was completed in 1945 at the University of Pennsylvania. It weighed 30 tons, occupied 1800 square feet of floor space, and consumed 150 kilowatts of power. Despite its enormous size, it performed calculations roughly 1000 times faster than any previous mechanical device.
+
+Transistors replaced vacuum tubes in computing devices during the 1950s, dramatically reducing their size and power consumption. The invention of the integrated circuit by Jack Kilby at Texas Instruments in 1958 allowed thousands of transistors to be placed on a single chip of silicon. This breakthrough made personal computing economically feasible for the first time.
+
+Gordon Moore, co-founder of Intel, observed in 1965 that the number of transistors on a chip doubled approximately every two years while costs remained constant. This observation, known as Moore's Law, accurately predicted the pace of computing progress for over five decades. However, physicists now warn that we are approaching the atomic limits of miniaturization.
+
+The ARPANET, funded by the United States Department of Defense in 1969, was the first network to use packet switching to transmit data between computers. It initially connected four universities and laid the groundwork for the modern internet. The transition from ARPANET to the public internet happened gradually throughout the 1980s.
+
+Tim Berners-Lee invented the World Wide Web in 1989 while working at CERN in Switzerland. His original proposal described a system for sharing documents between researchers using hyperlinks. The first website went live in August 1991, and within a decade the web had transformed global commerce, communication, and culture.
+
+The open source movement gained momentum in 1991 when Linus Torvalds released the Linux kernel. His announcement on a university newsgroup invited other developers to contribute to the project. Today Linux powers the majority of the world's servers, all Android devices, and most of the infrastructure behind cloud computing.
+
+Google was founded in 1998 by Larry Page and Sergey Brin as a research project at Stanford University. Their key innovation was PageRank, an algorithm that ranked search results by counting how many other websites linked to a page. Within five years Google had become the dominant search engine, fundamentally changing how people access information.
+
+The first iPhone was released by Apple in 2007, combining a phone, music player, and internet browser in a single touchscreen device. Steve Jobs described it as a revolutionary product that was five years ahead of anything else on the market. The smartphone era it launched created entirely new industries around mobile applications and location-based services.
+
+Deep learning, a technique where neural networks with many layers learn patterns from massive datasets, began achieving breakthrough results around 2012. A neural network called AlexNet won the ImageNet image recognition competition by a margin that shocked the research community. This triggered a wave of investment in artificial intelligence that continues to accelerate today.
+
+The concept of cloud computing, where processing power and storage are delivered as a service over the internet, was popularized by Amazon Web Services starting in 2006. Companies could now rent computing infrastructure by the hour instead of buying expensive hardware. This dramatically lowered the barrier to starting technology companies and enabled the explosion of internet startups.

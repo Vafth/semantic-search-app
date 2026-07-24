@@ -1,6 +1,6 @@
 [project]
 name = "document_service"
-version = "0.2.0"
+version = "0.1.5"
 description = "Service for getting access to document management features"
 requires-python = ">=3.11"
 dependencies = [

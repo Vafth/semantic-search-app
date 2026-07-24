@@ -9,32 +9,30 @@ Supports three IBM Granite embedding models (small English, normal English, mult
 optional sentence-level result refinement, and deep search for borderline chunks.
 Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
 
-## Usage Example
-
-### Test Document
-
-`docs/test.txt` - document provided for quick testing 
-> Source: [Apollo 11 — Wikipedia](https://en.wikipedia.org/wiki/Apollo_11)
-
 ---
+
+## Usage Example
 
 ### Step-by-step Guide
 
 **1. Open the app in your browser**
 
 Navigate to `http://localhost:8080`.
+Click on **Register** in the top right corner to create your account.
+
+![Sign-in/Register modal](docs/screenshots/auth.png)
 
 **2. Upload the document**
 
-Click **Choose File**, select `test.txt`, then click **Upload**.
+In the Upload Document section, click **Choose File**, select `test2.txt`, then click **Upload**.
 
-![Upload document](docs/screenshots/upload.png)
+![Upload document](docs/screenshots/document-list-empty.png)
 
-**3. Wait for embedding to complete**
+**3. Wait for processing**
 
-The document will be indexed across all three embedding models. For a small document this takes 10–20 seconds. A larger document (200+ chunks) may take several minutes.
+The document will be indexed across all three embedding models. For a small document this takes 10–20 seconds. A larger document (200+ chunks) may take several minutes. Watch the **Documents** table — wait until the status turns green and says ready.
 
-![Document list after upload](docs/screenshots/document-list.png)
+![Document list after upload](docs/screenshots/document-processing.png)
 
 **4. Render the document**
 
@@ -44,23 +42,40 @@ Click the **Render** button next to the document name to display the full text. 
 
 **5. Configure search parameters**
 
-Fill in the search query and adjust parameters as needed:
+Fill in the search query and adjust the parameters as needed (e.g., choosing your model, Top K results, and Score Threshold).
 
-| Parameter | Suggested value | Notes |
-|---|---|---|
-| Query | `nations competing to be first in space` | Try in other languages too with the multilingual model |
-| Model | `small_model` | Fastest for testing |
-| Top K | `3` | Number of results |
-| Score Threshold | `0.6` | Lower = more results |
-
-![Search results](docs/screenshots/search-params.png)
+![Search results](docs/screenshots/empty-search-params.png)
 
 **6. Run the search**
 
-Click **Search** and wait for results. Each result shows the similarity score, chunk index, and source filename.
+Click **Search** to execute your query. The search results will populate at the bottom, displaying the similarity score and source filename. To see the matched sentences highlighted in yellow, click **Render** next to your document in the table.
 
-![Search results](docs/screenshots/search-results1.png)
-![Search results](docs/screenshots/search-results2.png)
+![Search results](docs/screenshots/search-success-whole-screen.png)
+
+---
+
+### Search History
+
+The app automatically saves your previous search requests so you can easily return to them later.
+
+**Accessing Your History**
+
+To open your search history, click the burger menu (≡) in the top-left corner of the screen. This will slide out a sidebar displaying your past searches.
+
+![Search results](docs/screenshots/search-history.png)
+
+**Loading a Previous Search**
+
+Clicking on any search result from the history list will automatically restore your previous session. It will instantly fill in your previous parameters, populate the search results list, and apply the proper highlighting to the loaded document snippets.
+
+![Search results](docs/screenshots/autofilled-search-params-with-history-bar.png)
+![Search results](docs/screenshots/autofilled-search-results.png)
+
+**Managing Your History**
+
+To keep your history clean, you can remove any saved search result. Simply click the "X" on the right side of the specific search item in the history list to delete it.
+
+---
 
 ## Architecture
 
@@ -75,36 +90,46 @@ Click **Search** and wait for results. Each result shows the similarity score, c
                   │      (serves frontend)      │
                   └──────────────┬──────────────┘
                                  │
-                       ┌─────────┴───────────┐
-                       │                     │
-                       ▼                     ▼
-                 ┌─────────────┐     ┌──────────────┐
-                 │  Document   │     │    Search    │
-                 │  Service    │     │    Service   │
-                 │   :8001     │     │     :8002    │
-                 └─────┬───────┘     └───────┬──────┘
-                       │                     │
-                       └──────────┬──────────┘
-                                  │
-                                  │
-                ┌─────────────────┴─────────────────┐
-                ▼                                   ▼
-┌─────────────────────────────┐     ┌─────────────────────────────┐
-│        Model Service        │     │           Qdrant            │
-│    IBM Granite Embeddings   │ ──► │       Vector Database       │
-│          :8000              │     │          :6333              │
-└─────────────────────────────┘     └─────────────────────────────┘
+       ┌─────────────────────────┼─────────────────────────┐
+       ▼                         ▼                         ▼
+┌──────────────┐          ┌──────────────┐          ┌──────────────┐
+│ User Service │          │   Document   │          │    Search    │
+│    :8003     │          │   Service    │          │    Service   │
+│              │          │    :8001     │          │    :8002     │
+└──────┬───────┘          └──────┬───────┘          └──────┬───────┘
+       │                         │                         │
+       │   ┌─────────────────────┴─────────────────────────┤
+       ▼   ▼                                               │
+┌──────────────┐                                           │
+│  PostgreSQL  │                                           │
+│   Database   │                                           │
+│    :5432     │                                           │
+└──────────────┘                                           │
+                                                           │
+                ┌──────────────────────────────────────────┘
+                │
+                ├─────────────────────────────────┐
+                ▼                                 ▼
+ ┌─────────────────────────────┐   ┌─────────────────────────────┐
+ │        Model Service        │   │           Qdrant            │
+ │    IBM Granite Embeddings   │   │       Vector Database       │
+ │            :8000            │   │            :6333            │
+ └─────────────────────────────┘   └─────────────────────────────┘
 ```
+
+---
 
 ### Services
 
 | Service | Port | Description |
 |---|---|---|
 | gateway | 8080 | API gateway + frontend |
-| document-service | 8001 | Document upload, indexing, retrieval |
-| search-service | 8002 | Vector search with refine and deep search |
 | model-service | 8000 | IBM Granite embedding inference |
+| user-service | 8001 | User authentication, account management, and search history |
+| document-service | 8002 | Document upload, indexing, retrieval |
+| search-service | 8003 | Vector search with refine and deep search |
 | qdrant | 6333 | Vector database |
+| postgres | 5432 | Relational database for users, document metadata, and history |
 
 ### Embedding Models
 
@@ -122,117 +147,119 @@ Click **Search** and wait for results. Each result shows the similarity score, c
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Minikube](https://minikube.sigs.k8s.io/) _(for Kubernetes deployment)_
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) _(for Kubernetes deployment)_
+- [Terraform](https://developer.hashicorp.com/terraform) _(for infrastructure provisioning)_
+- [Helm](https://helm.sh/) _(for Kubernetes package management)_
+- [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) _(for GitOps deployment)_
 
 ---
 
-## Configuration
+## Running the Project
 
-Copy `.env.example` to `.env` and fill in the values:
+### Option 1 — Local Development (Docker Compose)
+
+#### Prerequisites
+
+- Docker & Docker Compose
+
+#### 1. Configure Environment
+
+Copy the example environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-The `.env` file is used by Docker Compose. 
-For Minikube, configuration is managed via `minikube/configmaps/services-config.yml`.
+> Modify secret keys and database credentials inside .env
+
+#### 2. Start Services
+
+Run Docker Compose to build and start all microservices:
+
+```bash
+docker compose up --build -d
+```
+
+#### 3. Access the Application
+
+Open your browser and navigate to `http://localhost:8080`.
 
 ---
 
-## Docker Compose
+### Option 2 — Kubernetes Deployment (GitOps with ArgoCD)
 
-### Build
+#### Prerequisites
 
-**PowerShell**
-```powershell
-.\scripts\ps1\build.ps1
-```
+- Minikube
+- kubectl
+- Helm
+- Terraform
+- ArgoCD
 
-**bash**
-```bash
-bash ./scripts/sh/build.sh
-```
-
-### Run
+#### 1. Start Minikube
 
 ```bash
-docker-compose up --no-build
+minikube start
 ```
 
-Access the app at `http://localhost:8080`.
+#### 2. Install & Expose ArgoCD
 
----
-
-## Minikube
-
-### Start Minikube
+Create the ArgoCD namespace and install the controller:
 
 ```bash
-minikube start --cpus 4 --memory 6144
+kubectl create namespace argocd
+kubectl apply -n argocd -f [https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml)
 ```
 
-<details>
-
-<summary>PowerShell</summary>
-
-### Load images
-
-```powershell
-.\scripts\ps1\load-images.ps1
-```
-
-### Deploy
-
-```powershell
-.\scripts\ps1\deploy.ps1
-```
-
-### Access
+Expose the ArgoCD server UI:
 
 ```bash
-minikube tunnel
+kubectl port-forward svc/argocd-server -n argocd 8888:443
+```
+
+> Access ArgoCD at https://localhost:8888
+
+#### 3. Provision Infrastructure with Terraform
+
+Copy the example Terraform variables file:
+
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+```
+
+> Modify secret keys and database credentials inside `terraform.tfvars`
+
+Initialize and apply the Terraform configuration:
+
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+
+Terraform will automatically create:
+
+- The semantic-search Kubernetes namespace
+- Kubernetes Secrets containing database credentials and JWT secret keys
+
+#### 4. Deploy the Application via ArgoCD
+
+Apply the ArgoCD Application manifest to begin the GitOps deployment:
+
+```bash
+kubectl apply -f argocd/argocd-app.yaml -n argocd
+```
+
+**ArgoCD** will automatically pull the **Helm chart** from GitHub, deploy all microservices to the semantic-search namespace, and maintain cluster synchronization.
+
+#### 5. Access the Application
+
+Expose the gateway service to route traffic:
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:8080
 ```
 
 Then open `http://localhost:8080` in your browser.
-
-### Reset cluster
-
-```powershell
-.\scripts\ps1\reset-minikube.ps1
-```
-
-</details>
-
-<details>
-
-<summary>bash</summary>
-
-### Load images
-
-```bash
-bash ./scripts/sh/load-images.sh
-```
-
-### Deploy
-
-```bash
-bash ./scripts/sh/deploy.sh
-```
-
-### Access
-
-```bash
-minikube tunnel
-```
-
-Then open `http://localhost:8080` in your browser.
-
-### Reset cluster
-
-```bash
-bash ./scripts/sh/reset-minikube.sh
-```
-
-</details>
 
 ---
 
@@ -248,6 +275,8 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 | `GET` | `/api/document/{id}/text` | Retrieve full document text |
 | `DELETE` | `/api/document/{id}` | Delete a document |
 | `GET` | `/api/search` | Semantic search |
+| `GET` | `/api/hostory` |Get whole search history |
+| `DELETE` | `/api//api/history/{id}` | Delete a history record |
 
 ### Search parameters
 
@@ -267,20 +296,29 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 
 ## Roadmap
 
-- [x] **v0.1.0**
-  - Microservices architecture
+- [x] **v1.0.0 — Core Search Engine**
+  - Microservices architecture (Gateway, Document, Search, Model Services, Qdrant)
   - Vector search with 3 IBM Granite embedding models
-  - Result refinement and deep search
-  - Docker Compose deployment
-  - Minikube cluster deployment
+  - Result refinement and deep search capabilities
+  - Initial Docker Compose & Minikube deployment
 
-- [ ] **v0.2.0**
-  - Test suite
-  - CI/CD pipeline
+- [x] **v1.5.0 — User Service & Search History (Current)**
+  - User authentication service with PostgreSQL integration
+  - Redesigned UI with collapsible Search History sidebar
+  - Automated deployment with Terraform, Helm, and ArgoCD
+  - CI pipeline with GitHub Actions
 
-- [ ] **v0.3.0**
-  - Complete logging system
-  - LLM agent layer (full RAG pipeline)
+- [ ] **v2.0.0 — Administration & Advanced Infrastructure**
+  - Account management settings
+  - Admin dashboard and moderation features
+  - Expanded automated test suite
+  - CI/CD transition to Jenkins and DockerHub registry
+
+- [ ] **v3.0.0 — Agentic RAG & Cloud Deployment**
+  - Migrate embedding models to Ollama and expand model selection
+  - AI Chat Assistant integration (Qwen 2.5) replacing static search history
+  - Chat-scoped document management and per-chat model selection
+  - Cloud infrastructure deployment (AWS / Azure)
 
 ---
 
