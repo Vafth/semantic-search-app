@@ -11,69 +11,64 @@ Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
 
 ---
 
-## Usage Example
+## Usage Examples
 
-### Step-by-step Guide
+<details>
+<summary>Step-by-step Guide</summary>
 
 **1. Open the app in your browser**
-
 Navigate to `http://localhost:8080`.
 Click on **Register** in the top right corner to create your account.
 
 ![Sign-in/Register modal](docs/screenshots/auth.png)
 
 **2. Upload the document**
-
 In the Upload Document section, click **Choose File**, select `test2.txt`, then click **Upload**.
 
 ![Upload document](docs/screenshots/document-list-empty.png)
 
 **3. Wait for processing**
-
 The document will be indexed across all three embedding models. For a small document this takes 10–20 seconds. A larger document (200+ chunks) may take several minutes. Watch the **Documents** table — wait until the status turns green and says ready.
 
 ![Document list after upload](docs/screenshots/document-processing.png)
 
 **4. Render the document**
-
 Click the **Render** button next to the document name to display the full text. After a search, matched sentences will be highlighted in yellow.
 
 ![Document render](docs/screenshots/document-render.png)
 
 **5. Configure search parameters**
-
 Fill in the search query and adjust the parameters as needed (e.g., choosing your model, Top K results, and Score Threshold).
 
 ![Search results](docs/screenshots/empty-search-params.png)
 
 **6. Run the search**
-
 Click **Search** to execute your query. The search results will populate at the bottom, displaying the similarity score and source filename. To see the matched sentences highlighted in yellow, click **Render** next to your document in the table.
 
 ![Search results](docs/screenshots/search-success-whole-screen.png)
 
----
+</details>
 
-### Search History
+<details>
+<summary>Search History</summary>
 
 The app automatically saves your previous search requests so you can easily return to them later.
 
 **Accessing Your History**
-
 To open your search history, click the burger menu (≡) in the top-left corner of the screen. This will slide out a sidebar displaying your past searches.
 
 ![Search results](docs/screenshots/search-history.png)
 
 **Loading a Previous Search**
-
 Clicking on any search result from the history list will automatically restore your previous session. It will instantly fill in your previous parameters, populate the search results list, and apply the proper highlighting to the loaded document snippets.
 
 ![Search results](docs/screenshots/autofilled-search-params-with-history-bar.png)
-![Search results](docs/screenshots/autofilled-search-results.png)
+![Search results](docs/screenshots/autofilled-search-result.png)
 
 **Managing Your History**
-
 To keep your history clean, you can remove any saved search result. Simply click the "X" on the right side of the specific search item in the history list to delete it.
+
+</details>
 
 ---
 
@@ -155,7 +150,8 @@ To keep your history clean, you can remove any saved search result. Simply click
 
 ## Running the Project
 
-### Option 1 — Local Development (Docker Compose)
+<details>
+<summary>Option 1 — Local Development (Docker Compose)</summary>
 
 #### Prerequisites
 
@@ -183,9 +179,10 @@ docker compose up --build -d
 
 Open your browser and navigate to `http://localhost:8080`.
 
----
+</details>
 
-### Option 2 — Kubernetes Deployment (GitOps with ArgoCD)
+<details>
+<summary>Option 2 — Kubernetes Deployment (GitOps with ArgoCD)</summary>
 
 #### Prerequisites
 
@@ -260,6 +257,8 @@ kubectl port-forward svc/argocd-server -n argocd 8080:8080
 ```
 
 Then open `http://localhost:8080` in your browser.
+
+</details>
 
 ---
 
