@@ -31,7 +31,7 @@ async def test_upload_wrong_encoding(client):
     response = await client.post(
         "/upload",
         files={"file": ("test.txt", "Mars is a red planet.".encode("utf-16"), "text/plain")},
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 422
