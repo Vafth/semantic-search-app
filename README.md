@@ -313,7 +313,7 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 | `DELETE` | `/api/history/{id}` | Delete a history record |
 | `GET` | `/auth/me` | Get user data |
 | `PATCH` | `/auth/me/username` | Change Username |
-| `PATCH` | `/auth/me/password` | Delete User Password |
+| `PATCH` | `/auth/me/password` | Change User Password |
 
 ### Search parameters
 
