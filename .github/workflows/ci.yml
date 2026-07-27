@@ -2,7 +2,7 @@ name: CI - Build and Push
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
     paths:
       - 'services/**'
       - '.github/workflows/ci.yml'
