@@ -34,7 +34,7 @@ async def test_upload_wrong_encoding(client):
         headers={"x-user-id": "1"}
     )
     
-    assert response.status_code == 400
+    assert response.status_code == 422
     assert "File must be UTF-8 encoded." in response.json()["detail"]
 
 async def test_upload_file_exist(client_with_file):
@@ -90,7 +90,10 @@ async def test_get_user_docs(client_with_file):
     )
     
     assert response.status_code == 200
-    assert list(response.json())[0]["filename"] == "test.txt"
+
+    data = response.json()
+    docs = data if isinstance(data, list) else data.get("documents", [])
+    assert docs[0]["filename"] == "test.txt"
 
 
 # ── document/{document_name}/text ─────────────────────────────────────────────

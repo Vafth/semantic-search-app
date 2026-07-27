@@ -134,15 +134,24 @@ async def seeded_qdrant_client(qdrant_client):
 # ── Mocks ────────────────────────────────────────────────────────────────────
 
 @pytest.fixture(autouse=True)
-def mock_user_service_storage():
-    """Automatically mock user-service HTTP requests across all tests."""
+def mock_user_service_requests():
+    
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_response.json.return_value = {
-        "storage_used": 0,
-    }
-    with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response) as mock_get:
-        yield mock_get
+    mock_response.json.return_value = {"storage_used": 0}
+
+    original_send = AsyncClient.send
+
+    async def mock_send(self, request, *args, **kwargs):
+        # If the request is targeting an external service (like user-service), return mock
+        if "internal" in str(request.url) or "user" in str(request.url):
+            return mock_response
+        # Otherwise, pass through to ASGI test client
+        return await original_send(self, request, *args, **kwargs)
+
+    with patch.object(AsyncClient, "send", new=mock_send):
+        yield
+
 
 @pytest.fixture
 def mock_index_document():
