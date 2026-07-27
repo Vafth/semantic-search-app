@@ -1,3 +1,4 @@
+import httpx
 from fastapi import APIRouter, File, UploadFile, HTTPException, Header
 
 from core.config import settings
@@ -17,26 +18,51 @@ from repository.postgres import (
 from repository.vector import get_chunks_by_document, delete_points_by_document
 from core.processor import index_document
 
+from common.dependencies import storage_limit_for_role
+
+import logging
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 # ── EndPoints ─────────────────────────────────────────────────────────────────
 
 @router.post("/upload")
 async def upload(
-    db: AsyncSessionDep,
-    qdrant: QdrantDep,
-    x_user_id: int = Header(...),
-    file: UploadFile = File(...)
+    db:          AsyncSessionDep,
+    qdrant:      QdrantDep,
+    x_user_id:   int = Header(...),
+    x_user_role: str = Header(...),
+    file:        UploadFile = File(...)
 ):
+
     if not file.filename or not file.filename.endswith(".txt"):
         raise HTTPException(status_code=400, detail="Only .txt files are supported.")
 
     content = await file.read()
+    file_size = len(content)
 
     try:
         text = content.decode("utf-8")
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="File must be UTF-8 encoded.")
+
+    # Storage limit check
+    limit = storage_limit_for_role(x_user_role)
+    if limit != -1:
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{settings.USER_SERVICE_URL}/internal/storage/{x_user_id}")
+            if r.status_code != 200:
+                raise HTTPException(503, "Could not verify storage usage")
+            storage_used = r.json()["storage_used"]
+
+        if storage_used + file_size > limit:
+            raise HTTPException(413, detail={
+                "code":          "storage_limit_exceeded",
+                "storage_used":  storage_used,
+                "storage_limit": limit,
+                "file_size":     file_size,
+            })
 
     existing = await get_document_by_name(db, x_user_id, file.filename)
     if existing:
@@ -49,9 +75,9 @@ async def upload(
 
     # 1. Create Document in PostgreSQL
     doc_in = DocumentCreate(
-        filename    = file.filename,
-        file_size    = len(content),
-        content_type = file.content_type,
+        filename     = file.filename,
+        file_size    = file_size,
+        content_type = file.content_type or "text/plain",
     )
 
     doc_record = await create_document(db, doc_in, x_user_id)
@@ -62,7 +88,13 @@ async def upload(
             
         # 3. Update PostgreSQL to Ready
         await update_document_status(db, doc_record.id, DocumentStatus.ready, len(chunks))
-        
+
+        async with httpx.AsyncClient() as client:
+            await client.patch(
+                f"{settings.USER_SERVICE_URL}/internal/storage/{x_user_id}",
+                params={"delta": file_size}
+            )
+
         return {
             "message":      "Document indexed successfully.",
             "document_id":   doc_record.id,
@@ -73,6 +105,8 @@ async def upload(
         # Mark as failed if Qdrant fails
         await update_document_status(db, doc_record.id, DocumentStatus.failed)
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+
+
 
 @router.get("/documents",response_model=list[DocumentRead])
 async def list_documents(
@@ -127,6 +161,12 @@ async def delete_document(
 
     # 3. Delete from Postgres
     await delete_document_by_id(db, doc.id)
+
+    async with httpx.AsyncClient() as client:
+        await client.patch(
+            f"{settings.USER_SERVICE_URL}/internal/storage/{x_user_id}",
+            params={"delta": -doc.file_size}
+        )
     
     return {
         "message": "Document deleted successfully."

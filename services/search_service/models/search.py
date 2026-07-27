@@ -9,9 +9,9 @@ from sqlalchemy import Column, Integer, String
 class SearchRequest(SQLModel, table=True):
     __tablename__ = "search_requests"
 
-    id:       Optional[int] = Field(default=None, primary_key=True)
-    user_id:  int           = Field(sa_column=Column(Integer, nullable=False, index=True))
-    filenames: Optional[str] = Field(sa_column=Column(String,  nullable=True,  index=True))
+    id:        Optional[int] = Field(default   = None, primary_key = True)
+    user_id:   int           = Field(sa_column = Column(Integer, nullable = False, index = True))
+    filenames: Optional[str] = Field(sa_column = Column(String,  nullable = True,  index = True))
 
     query:         str  = Field()
     search_params: dict = Field(
@@ -22,7 +22,7 @@ class SearchRequest(SQLModel, table=True):
 
     created_at: datetime = Field(
         default_factory = lambda: datetime.now(timezone.utc),
-        sa_type         = sa.DateTime(timezone=True), 
+        sa_type         = sa.DateTime(timezone = True), 
         nullable        = False,
     )
 
@@ -32,12 +32,12 @@ class SearchRequest(SQLModel, table=True):
 class SearchResult(SQLModel, table=True):
     __tablename__ = "search_results"
 
-    id:          Optional[int] = Field(default=None, primary_key=True)
-    request_id:  int           = Field(foreign_key="search_requests.id", index=True)
+    id:          Optional[int] = Field(default     = None, primary_key = True)
+    request_id:  int           = Field(foreign_key = "search_requests.id", index = True)
 
     filename:    str   = Field()
     chunk_text:  str   = Field()
     chunk_index: int   = Field()   # position inside the source document
     score:       float = Field()
 
-    request: SearchRequest = Relationship(back_populates="results")
+    request: SearchRequest = Relationship(back_populates = "results")

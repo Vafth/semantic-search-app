@@ -4,6 +4,7 @@ from enum import Enum
 class UserRole(str, Enum):
     user  = "user"
     admin = "admin"
+    owner = "owner"
 
 class InternalUser(BaseModel):
     id:   int
