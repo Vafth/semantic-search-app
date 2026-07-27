@@ -5,11 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from core.config import settings
-from core.security import UserDep, authenticate_user, create_access_token, get_hash_password
-from database import AsyncSessionDep
+from core.security import create_access_token, get_hash_password, verify_password
+from core.auth import UserDep, authenticate_user
+
+from db.deps import AsyncSessionDep
 from models.user import User, UserRole
-from schemas.user import Token, UserCreate, UserRead, UserUpdate
-from repository.user import get_user_by_username, get_user_by_id, get_all_users, create_user, update_user_fields
+from schemas.user import Token, UserCreate, UserRead, UserUpdate, PasswordUpdate, UsernameUpdate
+from repository.user import get_user_by_username, get_user_by_id, get_all_users, create_user, update_user_fields, update_password, update_username
 
 router = APIRouter()
 
@@ -46,7 +48,7 @@ async def login(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account disabled")
 
     token = create_access_token(
-        data          = {"sub": str(user.id), "role": user.role},
+        data          = {"sub": str(user.id), "role": user.role.value},
         expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     response.set_cookie(
@@ -65,11 +67,38 @@ async def logout(response: Response):
     response.delete_cookie("access_token")
 
 
-# ── Authenticated user ────────────────────────────────────────────────────────
+# ── Account ───────────────────────────────────────────────────────────────────
 
 @router.get("/me", response_model=UserRead)
 async def me(current_user: UserDep):
     return current_user
+
+
+@router.patch("/me/username", response_model=UserRead)
+async def change_username(
+    body:   UsernameUpdate,
+    db:     AsyncSessionDep,
+    current_user: UserDep,
+):
+
+    existing = await get_user_by_username(db, body.new_username)
+    if existing:
+        raise HTTPException(409, "Username already taken")
+
+    return await update_username(db, current_user, body.new_username)
+
+
+@router.patch("/me/password", status_code=204)
+async def change_password(
+    body:   PasswordUpdate,
+    db:     AsyncSessionDep,
+    current_user: UserDep,
+):
+
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(400, "Current password is incorrect")
+
+    await update_password(db, current_user, body.new_password)
 
 
 # ── Admin ─────────────────────────────────────────────────────────────────────

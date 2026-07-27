@@ -13,6 +13,12 @@ class BaseAppSettings(BaseSettings):
     QDRANT_PORT: int = 6333
 
     MODEL_SERVICE_URL: str = "http://localhost:8000"
+    USER_SERVICE_URL:  str = "http://localhost:8001"
+
+    STORAGE_LIMIT_USER:  int = 5_242_880   # 5MB
+    STORAGE_LIMIT_ADMIN: int = 52_428_800  # 50MB
+    STORAGE_LIMIT_OWNER: int = -1           # unlimited
+
 
     COLLECTIONS: dict = {
         "small_model": {
@@ -28,6 +34,7 @@ class BaseAppSettings(BaseSettings):
             "vector_size": 768,
         },
     }
+    
 
     model_config = SettingsConfigDict(
         env_file          = os.getenv("ENV_FILE", ".env"),
@@ -35,3 +42,5 @@ class BaseAppSettings(BaseSettings):
         case_sensitive    = True,
         extra             = "ignore",
     )
+
+_setting = BaseAppSettings()

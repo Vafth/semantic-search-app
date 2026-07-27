@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 
 from common.schemas.internal import UserRole
 
@@ -24,6 +24,7 @@ class UserRead(BaseModel):
     username:   str
     role:       UserRole
 
+    storage_used: int
     created_at: datetime
     updated_at: Optional[datetime]
     
@@ -39,3 +40,12 @@ class UserUpdate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type:   str = "bearer"
+
+
+class UsernameUpdate(BaseModel):
+    new_username: str = Field(min_length=3, max_length=50)
+
+
+class PasswordUpdate(BaseModel):
+    current_password: str
+    new_password:     str = Field(min_length=3)

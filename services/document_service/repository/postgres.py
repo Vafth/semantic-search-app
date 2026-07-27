@@ -4,10 +4,11 @@ from models.document import Document, DocumentStatus
 from schemas.document import DocumentCreate
 
 async def create_document(
-        db: AsyncSession, 
-        doc_in: DocumentCreate, 
-        user_id: int
-    ) -> Document:
+    db:        AsyncSession, 
+    doc_in:    DocumentCreate, 
+    user_id:   int,
+) -> Document:
+
     db_obj = Document(**doc_in.model_dump(), user_id=user_id)
     db.add(db_obj)
     await db.commit()

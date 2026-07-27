@@ -18,12 +18,13 @@ handler = logging.StreamHandler(sys.stdout)
 handler.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s | %(message)s'))
 logger.addHandler(handler)
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Initializing PostgreSQL tables...")
     await create_db_and_tables()
+
     logger.info("User Service started.")
+
     yield
     logger.info("Shutting down User Service...")
 
