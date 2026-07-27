@@ -1,4 +1,4 @@
-from core.security import authenticate_user, get_current_user
+from core.auth import authenticate_user, get_current_user
 
 async def test_authenticate_user(db_session, test_user):
     db_user = await authenticate_user(db_session, "testuser", "testpassword123")

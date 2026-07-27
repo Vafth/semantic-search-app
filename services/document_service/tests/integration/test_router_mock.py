@@ -8,7 +8,7 @@ async def test_upload_wrong_collection(client, mock_index_document):
     response = await client.post(
         "/upload",
         files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 500
@@ -19,7 +19,8 @@ async def test_upload_wrong_file(client):
     response = await client.post(
         "/upload",
         files={"file": ("test.pdf", b"Mars is a red planet.", "text/plain")},
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
+
     )
     
     assert response.status_code == 400
@@ -41,7 +42,7 @@ async def test_upload_file_exist(client_with_file):
     response = await client_with_file.post(
         "/upload",
         files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 409
@@ -51,7 +52,7 @@ async def test_upload_empty_file(client):
     response = await client.post(
         "/upload",
         files={"file": ("test.txt", b"", "text/plain")},
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 422
@@ -62,7 +63,7 @@ async def test_upload_qdrant_fails(client, mock_get_embeddings):
         response = await client.post(
             "/upload",
             files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
-            headers={"x-user-id": "1"}
+            headers={"x-user-id": "1", "x-user-role": "user"}
         )
     assert response.status_code == 500
     assert "Processing failed" in response.json()["detail"]
@@ -72,7 +73,7 @@ async def test_upload_success(client, mock_get_embeddings):
         response = await client.post(
             "/upload",
             files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
-            headers={"x-user-id": "1"}
+            headers={"x-user-id": "1", "x-user-role": "user"}
         )
     assert response.status_code == 200
     assert response.json()["message"] == "Document indexed successfully."
@@ -85,7 +86,7 @@ async def test_get_user_docs(client_with_file):
     
     response = await client_with_file.get(
         "/documents",
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 200
@@ -98,7 +99,7 @@ async def test_get_doc_text_text_missing(client_with_file):
     
     response = await client_with_file.get(
         "/document/test.txt/text",
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 404
@@ -109,7 +110,7 @@ async def test_get_doc_text_wrong_filename(client_with_file):
     
     response = await client_with_file.get(
         "/document/123/text",
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 404
@@ -122,7 +123,7 @@ async def test_delete_doc_no_file(client):
     
     response = await client.delete(
         "/document/123",
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 404
@@ -132,7 +133,7 @@ async def test_delete_doc_qdrant_fails(client_with_file):
     with patch("routers.document.delete_points_by_document", return_value=["small_model_collection"]):
         response = await client_with_file.delete(
             "/document/test.txt",
-            headers={"x-user-id": "1"}
+            headers={"x-user-id": "1", "x-user-role": "user"}
         )
     
     assert response.status_code == 500
@@ -142,7 +143,7 @@ async def test_delete_doc(client_with_file):
     
     response = await client_with_file.delete(
         "/document/test.txt",
-        headers={"x-user-id": "1"}
+        headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
     assert response.status_code == 200
