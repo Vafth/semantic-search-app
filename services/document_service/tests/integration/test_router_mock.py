@@ -34,7 +34,7 @@ async def test_upload_wrong_encoding(client):
         headers={"x-user-id": "1", "x-user-role": "user"}
     )
     
-    assert response.status_code == 422
+    assert response.status_code == 400
     assert "File must be UTF-8 encoded." in response.json()["detail"]
 
 async def test_upload_file_exist(client_with_file):
