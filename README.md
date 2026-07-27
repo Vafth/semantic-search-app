@@ -331,13 +331,13 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 
 ## Roadmap
 
-- [x] **v1.0.0 — Core Search Engine**
+- [x] **v0.1.0 — Core Search Engine**
   - Microservices architecture (Gateway, Document, Search, Model Services, Qdrant)
   - Vector search with 3 IBM Granite embedding models
   - Result refinement and deep search capabilities
   - Initial Docker Compose & Minikube deployment
 
-- [x] **v1.5.0 — User Service, Auth & Account Management (Current)**
+- [x] **v0.1.5 — User Service, Auth & Account Management (Current)**
   - User authentication with JWT and PostgreSQL integration
   - Three-tier role hierarchy (owner / admin / user) with owner bootstrapped on first start
   - Per-role storage quotas enforced server-side on document upload
@@ -347,13 +347,13 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
   - Automated deployment with Terraform, Helm, and ArgoCD
   - CI pipeline with GitHub Actions
 
-- [ ] **v2.0.0 — Administration, Monitoring & CI**
+- [ ] **v0.2.0 — Administration, Monitoring & CI**
   - Admin dashboard — user management, per-user stats, aggregate usage analytics
   - Owner dashboard — cluster metrics via Grafana and Loki (infrastructure level)
   - Expanded test suite — max coverage of unit, integration, and E2E tests
   - CI/CD transition to Jenkins with DockerHub registry
 
-- [ ] **v3.0.0 — Agentic RAG & Cloud Deployment**
+- [ ] **v0.3.0 — Agentic RAG & Cloud Deployment**
   - Migrate embedding models from HuggingFace to Ollama
   - AI Chat Assistant (Qwen 2.5) replacing static search as primary interface
   - Intelligent multi-query search — assistant operates on history, selects models, fans out queries
