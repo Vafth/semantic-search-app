@@ -139,8 +139,7 @@ def mock_user_service_storage():
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
-        "used_bytes": 0,
-        "max_bytes": 100_000_000,
+        "storage_used": 0,
     }
     with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response) as mock_get:
         yield mock_get
