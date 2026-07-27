@@ -258,7 +258,7 @@ Copy the example Terraform variables file:
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 ```
 
-> Modify secret keys and database credentials inside `terraform.tfvars`
+> Modify secret keys, database and owner user credentials inside `terraform.tfvars`
 
 Initialize and apply the Terraform configuration:
 
@@ -349,7 +349,7 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 - [ ] **v2.0.0 — Administration, Monitoring & CI**
   - Admin dashboard — user management, per-user stats, aggregate usage analytics
   - Owner dashboard — cluster metrics via Grafana and Loki (infrastructure level)
-  - Expanded test suite — unit, integration (real Postgres), and E2E
+  - Expanded test suite — max coverage of unit, integration, and E2E tests
   - CI/CD transition to Jenkins with DockerHub registry
 
 - [ ] **v3.0.0 — Agentic RAG & Cloud Deployment**
