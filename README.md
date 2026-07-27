@@ -145,7 +145,6 @@ A confirmation message appears inline on success.
  │    IBM Granite Embeddings   │   │       Vector Database       │
  │            :8000            │   │            :6333            │
  └─────────────────────────────┘   └─────────────────────────────┘
->>>>>>> c473231 (release: polish project and update documentation for v1.5.0)
 ```
 
 ---
