@@ -1,0 +1,4 @@
+postgres_password = "password"
+secret_key = "your_secret_key"
+OWNER_USERNAME = "owner"
+OWNER_PASSWORD = "owner_password"
