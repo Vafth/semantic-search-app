@@ -17,3 +17,13 @@ variable "secret_key" {
   description = "Secret Key for AUTH"
   sensitive   = true
 }
+
+variable "OWNER_PASSWORD" {
+  description = "Owner user password"
+  sensitive   = true
+}
+
+variable "OWNER_USERNAME" {
+  description = "Owner user username"
+  sensitive   = true
+}

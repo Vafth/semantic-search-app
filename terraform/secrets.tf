@@ -19,6 +19,8 @@ resource "kubernetes_secret" "auth_secret" {
     namespace = kubernetes_namespace.semantic_search.metadata[0].name
   }
   data = {
-    SECRET_KEY = var.secret_key
+    SECRET_KEY     = var.secret_key
+    OWNER_USERNAME = var.OWNER_USERNAME
+    OWNER_PASSWORD = var.OWNER_PASSWORD
   }
 }
