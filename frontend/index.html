@@ -402,16 +402,49 @@
             box-shadow: 4px 4px 0 rgba(0,0,0,0.08);
             z-index: 200;
         }
-        .future-hint {
-            padding: 8px 16px; border-top: 1px solid var(--border-color);
-            font-size: 11px; color: var(--text-muted); background: var(--bg-panel);
-            display: flex; gap: 6px; align-items: center;
-        }
-        .hint-dot { width: 6px; height: 6px; background: var(--border-color); flex-shrink: 0; }
         .dd-footer {
             padding: 10px 16px; border-top: 1px solid var(--border-color);
             display: flex; justify-content: flex-end;
         }
+
+        /* Storage bar */
+        .storage-section { padding: 10px 16px; border-bottom: 1px solid var(--border-color); }
+        .storage-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 7px;
+        }
+        .storage-track { height: 5px; background: var(--header-bg); border: 1px solid var(--border-color); margin-bottom: 5px; }
+        .storage-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+        .storage-fill.warn { background: var(--action-red); }
+        .storage-text { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+
+        /* Expandable settings */
+        .setting-toggle {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 9px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color);
+            font-size: 13px; font-weight: 500; user-select: none; transition: background 0.12s;
+        }
+        .setting-toggle:hover { background: var(--bg-panel); }
+        .setting-caret { font-size: 10px; color: var(--text-muted); transition: transform 0.15s; }
+        .setting-caret.open { transform: rotate(90deg); }
+        .setting-form {
+            padding: 12px 16px; border-bottom: 1px solid var(--border-color);
+            background: var(--bg-panel); display: none; flex-direction: column; gap: 7px;
+        }
+        .setting-form.visible { display: flex; }
+        .setting-form input {
+            width: 100%; padding: 7px 10px; border: 1px solid var(--border-color);
+            font-size: 13px; background: white; outline: none;
+        }
+        .setting-form input:focus { border-color: var(--accent); }
+        .setting-btn {
+            width: 100%; padding: 7px; background: var(--accent); border: none;
+            color: white; font-size: 12px; font-weight: 700;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .form-msg { font-size: 11px; padding: 5px 8px; display: none; }
+        .form-msg.err { color: var(--action-red); background: #fff5f5; border: 1px solid #f5c6cb; }
+        .form-msg.ok  { color: #198754; background: #f0fff4; border: 1px solid #c3e6cb; }
 
         /* ── History Items ─────────────────────────────────────── */
         .hist-empty { font-size: 12px; color: var(--text-muted); padding: 4px 0; }
@@ -462,10 +495,6 @@
                     </div>
                 </div>
                 <div id="account-content"></div>
-                <div class="future-hint">
-                    <div class="hint-dot"></div>
-                    Change password · Manage sessions
-                </div>
                 <div class="dd-footer">
                     <button class="signout-btn" onclick="logout()">Sign out</button>
                 </div>
@@ -708,6 +737,7 @@ let openDocumentsMap = new Map();
 let currentSearchResults = []; 
 
 function dataToString(raw_date) {
+    if (!raw_date) return '—';
     return new Date(raw_date).toLocaleString('en-US', {
         month: 'short', day: 'numeric', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
@@ -873,29 +903,102 @@ function toggleSidebar() {
     mainContainer.classList.toggle('sidebar-open');
 }
 
+function formatMB(bytes) {
+    return (bytes / 1_048_576).toFixed(1) + ' MB';
+}
+
 function populateAccountSection() {
     if (!currentUser) return;
     const initials = currentUser.username.slice(0, 2).toUpperCase();
 
-    const date_created_at = dataToString(currentUser.created_at)
-    const date_updated_at = dataToString(currentUser.updated_at)
-
-    document.getElementById('topbar-avatar').textContent = initials;
+    document.getElementById('topbar-avatar').textContent  = initials;
     document.getElementById('username-display').textContent = currentUser.username;
-    document.getElementById('dd-avatar').textContent = initials;
-    document.getElementById('dd-username').textContent = currentUser.username;
-    document.getElementById('dd-role').textContent = currentUser.role || 'user';
+    document.getElementById('dd-avatar').textContent      = initials;
+    document.getElementById('dd-username').textContent    = currentUser.username;
+    document.getElementById('dd-role').textContent        = currentUser.role || 'user';
 
+    // Meta rows
     document.getElementById('account-content').innerHTML = `
-        <div class="meta-row" style="display:flex; justify-content:space-between; padding:7px 16px; border-bottom:1px solid var(--border-color); font-size:12px;">
-            <span style="color:var(--text-muted)">Created</span>
-            <span style="font-family:monospace; font-size:11px;">${date_created_at || '—'}</span>
+        <div class="meta-row">
+            <span class="meta-key">Created</span>
+            <span class="meta-val">${dataToString(currentUser.created_at) || '—'}</span>
         </div>
-        <div class="meta-row" style="display:flex; justify-content:space-between; padding:7px 16px; font-size:12px;">
-            <span style="color:var(--text-muted)">Updated</span>
-            <span style="font-family:monospace; font-size:11px;">${date_updated_at || '—'}</span>
+        <div class="meta-row">
+            <span class="meta-key">Updated</span>
+            <span class="meta-val">${dataToString(currentUser.updated_at) || '—'}</span>
+        </div>
+
+        <div class="storage-section">
+            <div class="storage-label">Storage</div>
+            <div class="storage-track">
+                <div class="storage-fill ${storageWarnClass(currentUser)}" 
+                     id="storage-fill-bar"
+                     style="width: ${storagePercent(currentUser)}%"></div>
+            </div>
+            <div class="storage-text">
+                <span>${formatMB(currentUser.storage_used || 0)} used</span>
+                <span>${storageLimit(currentUser)}</span>
+            </div>
+        </div>
+
+        <div class="setting-toggle" onclick="toggleSettingForm('uname-form', this)">
+            <span>Change username</span>
+            <span class="setting-caret">▸</span>
+        </div>
+        <div class="setting-form" id="uname-form">
+            <input type="text" id="new-username" placeholder="New username">
+            <div class="form-msg err" id="uname-msg"></div>
+            <button class="setting-btn" onclick="doChangeUsername()">Update username</button>
+        </div>
+
+        <div class="setting-toggle" onclick="toggleSettingForm('pwd-form', this)">
+            <span>Change password</span>
+            <span class="setting-caret">▸</span>
+        </div>
+        <div class="setting-form" id="pwd-form">
+            <input type="password" id="current-password" placeholder="Current password">
+            <input type="password" id="new-password" placeholder="New password">
+            <input type="password" id="confirm-password" placeholder="Confirm new password">
+            <div class="form-msg" id="pwd-msg"></div>
+            <button class="setting-btn" onclick="doChangePassword()">Update password</button>
         </div>
     `;
+}
+
+var storageLimitByRole = {
+    user:  524_2880,   // 5 MB
+    admin: 52_428_800,  // 50 MB
+    owner: -1,           // unlimited
+};
+
+function getStorageLimit(user) {
+    return storageLimitByRole[user.role] ?? -1;
+}
+
+function storagePercent(user) {
+    const used  = user.storage_used || 0;
+    const limit = getStorageLimit(user);
+    if (limit === -1) return 0;
+    return Math.min(100, (used / limit) * 100).toFixed(1);
+}
+
+function storageWarnClass(user) {
+    return parseFloat(storagePercent(user)) >= 90 ? 'warn' : '';
+}
+
+function storageLimit(user) {
+    const limit = getStorageLimit(user);
+    return limit === -1 ? 'Unlimited' : `of ${formatMB(limit)}`;
+}
+
+async function refreshCurrentUser() {
+    try {
+        currentUser = await apiFetch('/auth/me');
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        populateAccountSection();
+    } catch (e) {
+        if (!(e instanceof UnauthorizedError)) console.error('Failed to refresh user:', e);
+    }
 }
 
 let accountMenuOpen = false;
@@ -903,6 +1006,78 @@ function toggleAccountMenu() {
     accountMenuOpen = !accountMenuOpen;
     document.getElementById('account-dropdown').style.display = accountMenuOpen ? 'block' : 'none';
     document.getElementById('acct-caret').textContent = accountMenuOpen ? '▲' : '▼';
+}
+
+function toggleSettingForm(id, toggleEl) {
+    const form   = document.getElementById(id);
+    const isOpen = form.classList.contains('visible');
+    document.querySelectorAll('.setting-form').forEach(f => f.classList.remove('visible'));
+    document.querySelectorAll('.setting-caret').forEach(c => c.classList.remove('open'));
+    if (!isOpen) {
+        form.classList.add('visible');
+        toggleEl.querySelector('.setting-caret').classList.add('open');
+    }
+}
+
+function showFormMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className   = `form-msg ${type}`;
+    el.style.display = 'block';
+}
+
+async function doChangeUsername() {
+    const newUsername = document.getElementById('new-username').value.trim();
+    if (!newUsername) { showFormMsg('uname-msg', 'Username cannot be empty.', 'err'); return; }
+
+    try {
+        const updated = await apiFetch('/auth/me/username', {
+            method:  'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ new_username: newUsername }),
+        });
+
+        // Sync updated user into memory and storage
+        currentUser.username = updated.username;
+        currentUser.updated_at = updated.updated_at;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+        populateAccountSection();
+
+    } catch (e) {
+        if (!(e instanceof UnauthorizedError)) {
+            showFormMsg('uname-msg', e.message || 'Update failed.', 'err');
+        }
+    }
+}
+
+async function doChangePassword() {
+    const current  = document.getElementById('current-password').value;
+    const next     = document.getElementById('new-password').value;
+    const confirm  = document.getElementById('confirm-password').value;
+
+    if (!current || !next) { showFormMsg('pwd-msg', 'All fields required.', 'err'); return; }
+    if (next !== confirm)  { showFormMsg('pwd-msg', 'Passwords do not match.', 'err'); return; }
+    if (next.length < 8)   { showFormMsg('pwd-msg', 'Minimum 8 characters.', 'err'); return; }
+
+    try {
+        await apiFetch('/auth/me/password', {
+            method:  'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ current_password: current, new_password: next }),
+        });
+
+        showFormMsg('pwd-msg', 'Password updated successfully.', 'ok');
+        document.getElementById('current-password').value = '';
+        document.getElementById('new-password').value     = '';
+        document.getElementById('confirm-password').value = '';
+
+    } catch (e) {
+        if (!(e instanceof UnauthorizedError)) {
+            showFormMsg('pwd-msg', e.message || 'Update failed.', 'err');
+        }
+    }
 }
 
 // Toggle logic
@@ -1095,6 +1270,7 @@ async function uploadDocument() {
     } finally {
         document.getElementById('upload-pending-row')?.remove();
         loadDocuments();
+        await refreshCurrentUser();
     }
 }
 

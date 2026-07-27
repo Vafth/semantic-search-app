@@ -71,6 +71,36 @@ async def me(claims: ClaimsDep):
     return _json_response(resp)
 
 
+@router.patch("/auth/me/username")
+async def change_username(request: Request, claims: ClaimsDep):
+    internal_headers = build_internal_headers(claims)
+    body = await request.json()
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        await _verify_user(claims, client)
+        resp = await client.patch(
+            f"{settings.USER_SERVICE_URL}/me/username",
+            json    = body,
+            headers = internal_headers,
+        )
+    return _json_response(resp)
+
+
+@router.patch("/auth/me/password", status_code=204)
+async def change_password(request: Request, claims: ClaimsDep):
+    internal_headers = build_internal_headers(claims)
+    body = await request.json()
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        await _verify_user(claims, client)
+        resp = await client.patch(
+            f"{settings.USER_SERVICE_URL}/me/password",
+            json    = body,
+            headers = internal_headers,
+        )
+    if resp.status_code == 204:
+        return Response(status_code=204)
+    return _json_response(resp)
+
+
 @router.get("/admin/users")
 async def list_users(claims: ClaimsDep):
     
