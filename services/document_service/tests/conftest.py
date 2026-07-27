@@ -1,7 +1,7 @@
 import pytest
+from unittest.mock import patch, MagicMock, AsyncMock
 
 from httpx import AsyncClient, ASGITransport
-from unittest.mock import patch
 
 from sqlmodel import SQLModel
 from sqlalchemy.pool import NullPool
@@ -28,7 +28,7 @@ async def engine():
     engine = create_async_engine(
         settings.POSTGRES_URL, 
         echo=False,
-        poolclass = NullPool
+        poolclass=NullPool
     )
     
     async with engine.begin() as conn:
@@ -51,10 +51,10 @@ def qdrant_client():
     # create test collections
     for model_name, cfg in settings.COLLECTIONS.items():
         client.create_collection(
-            collection_name = cfg["collection"],
-            vectors_config  = VectorParams(
-                size     = cfg["vector_size"],
-                distance = Distance.COSINE,
+            collection_name=cfg["collection"],
+            vectors_config=VectorParams(
+                size=cfg["vector_size"],
+                distance=Distance.COSINE,
             ),
         )
     yield client
@@ -80,8 +80,8 @@ async def client(db_session, qdrant_client):
     qdrant_module._client = qdrant_client
 
     async with AsyncClient(
-        transport = ASGITransport(app=app),
-        base_url  = "http://test",
+        transport=ASGITransport(app=app),
+        base_url="http://test",
     ) as ac:
         yield ac
 
@@ -90,7 +90,6 @@ async def client(db_session, qdrant_client):
 
 @pytest.fixture
 async def client_with_file(client):
-    
     with patch("routers.document.index_document"):
         response = await client.post(
             "/upload",
@@ -105,9 +104,9 @@ async def client_with_file(client):
 @pytest.fixture
 def new_document():
     return DocumentCreate(
-        filename     = "test.txt",
-        file_size    = 20,
-        content_type = "text/html",
+        filename="test.txt",
+        file_size=20,
+        content_type="text/html",
     )
 
 @pytest.fixture
@@ -122,17 +121,30 @@ async def session_with_document(db_session, new_document):
 @pytest.fixture
 async def seeded_qdrant_client(qdrant_client):
     await store_chunks(
-        qdrant     = qdrant_client,
-        chunks     = ["Mars is a red planet"],
-        vectors    = [[0.1] * 384],
-        doc_id     = 1,
-        filename   = "test.txt",
-        model_name = list(settings.COLLECTIONS.keys())[0],
-        cfg        = settings.COLLECTIONS["small_model"],
+        qdrant=qdrant_client,
+        chunks=["Mars is a red planet"],
+        vectors=[[0.1] * 384],
+        doc_id=1,
+        filename="test.txt",
+        model_name=list(settings.COLLECTIONS.keys())[0],
+        cfg=settings.COLLECTIONS["small_model"],
     )
     return qdrant_client
 
 # ── Mocks ────────────────────────────────────────────────────────────────────
+
+@pytest.fixture(autouse=True)
+def mock_user_service_storage():
+    """Automatically mock user-service HTTP requests across all tests."""
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "used_bytes": 0,
+        "max_bytes": 100_000_000,
+    }
+    with patch("httpx.AsyncClient.get", new_callable=AsyncMock, return_value=mock_response) as mock_get:
+        yield mock_get
+
 @pytest.fixture
 def mock_index_document():
     with patch("routers.document.index_document") as m:
