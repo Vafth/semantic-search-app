@@ -95,7 +95,7 @@ async def client_with_file(client):
         response = await client.post(
             "/upload",
             files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
-            headers={"x-user-id": "1"}
+            headers={"x-user-id": "1", "x-user-role": "user"}
         )
 
     return client
