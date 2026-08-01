@@ -13,7 +13,7 @@ from main import app
 from database import get_async_session
 from qdrant import get_qdrant_client
 from core.config import settings
-
+from schemas.search import SearchParams
 
 # ── Database ──────────────────────────────────────────────────────────────────
 
@@ -78,3 +78,27 @@ async def client(db_session, qdrant_client):
         yield ac
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def seed_factory(qdrant_client):
+    async def _seed(points):
+        collection = list(settings.COLLECTIONS.values())[0]["collection"]
+        qdrant_client.upsert(collection_name=collection, points=points)
+        return qdrant_client
+    return _seed
+
+
+@pytest.fixture
+def search_params():
+    return SearchParams(
+        query="Mars",
+        model="small_model",
+        top_k=5,
+        score=0.4,
+        dif=0.0,
+        filenames="test.txt",
+        refine=False,
+        deep=True,
+        deep_min=0.0
+    )
