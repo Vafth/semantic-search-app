@@ -1,57 +1,59 @@
-from unittest.mock import patch
+import pytest
 from httpx import HTTPError
 
 from core.config import settings
 from schemas.search import SearchParams
 
+@pytest.fixture
+def search_params():
+    return SearchParams(
+        query="Mars",
+        model="small_model",
+        top_k=5,
+        score=0.4,
+        dif=0.0,
+        filenames="test.txt",
+        refine=False,
+        deep=True,
+        deep_min=0.0
+    )
+
+
 # ── search ────────────────────────────────────────────────────────────────────
 
 async def test_search_wrong_modelname(client):
-
-    search_params = SearchParams(
-        query = "Mars",
-        model = "123",
-        top_k = 5,
-        score = 0.4,
-        dif = 0.0,
-        filenames = "test.txt",
-        refine = False,
-        deep = True,
-        deep_min = 0.0
+    response = await client.get(
+        "/search",
+        params={"query": "Mars", "model": "123", "top_k": 5, "score": 0.4, 
+                "dif": 0.0, "filenames": "test.txt", "refine": False, 
+                "deep": True, "deep_min": 0.0},
+        headers={"x-user-id": "1"}
     )
-    
+    assert response.status_code == 400
+    assert response.json()["detail"] == f"Unknown model '123'. Choose from: {list(settings.COLLECTIONS.keys())}"
+
+async def test_search_model_service_fail(client, search_params):
     response = await client.get(
         "/search",
         params  = search_params.model_dump(),
         headers = {"x-user-id": "1"}
     )
     
-    assert response.status_code == 400
-    assert response.json()["detail"] == f"Unknown model '123'. Choose from: {list(settings.COLLECTIONS.keys())}"
-
-async def test_search_model_service_fail(client, search_params):
-    with patch("routers.search.embed_query", side_effect=HTTPError("Model service connection failed")):
-        response = await client.get(
-            "/search",
-            params  = search_params.model_dump(),
-            headers = {"x-user-id": "1"}
-        )
-    
     assert response.status_code == 502
     assert response.json()["detail"] == "Model service error: Model service connection failed"
 
 
 async def test_search(client, search_params):
-    with patch("routers.search.embed_query", return_value=[0.1]*384):
-        response = await client.get(
-            "/search",
-            params  = search_params.model_dump(),
-            headers = {"x-user-id": "1"}
-        )
-        
+    response = await client.get(
+        "/search",
+        params  = search_params.model_dump(),
+        headers = {"x-user-id": "1"}
+    )
+    
     
     assert response.status_code == 200
     assert response.json()["query"] == search_params.query
+
 
 # ── history ───────────────────────────────────────────────────────────────────
 

@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# 1. Root workspace config
+COPY pyproject.toml uv.lock ./
+
+# In Dockerfile.test, after COPY pyproject.toml
+RUN sed -i '/members = \[/,/\]/c\members = [\n    "./services/common",\n    "./services/search_service",\n]' pyproject.toml
+
+# 2. Common package (needed by all services)
+COPY services/common ./services/common
+
+# 3. Only the service being tested
+COPY services/search_service ./services/search_service
+
+# 4. Test config
+COPY .env.test ./
+
+# 5. Install (uv resolves workspace from root config)
+RUN uv sync --package search_service --package semantic_search_app --group dev
+
+CMD ["uv", "run", "pytest", "services/search_service/tests", "-v"]

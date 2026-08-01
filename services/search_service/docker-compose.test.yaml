@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file:
+      - .env.test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-project_db_test}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  qdrant:
+    image: qdrant/qdrant:v1.17.0
+    env_file:
+      - .env.test
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/${QDRANT_PORT:-6333}'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  wiremock:
+    image: wiremock/wiremock:3.3.1
+    env_file:
+      - .env.test
+    volumes:
+      - ./tests/wiremock:/home/wiremock
+    command: ["--global-response-templating"]
+
+  tests:
+    build:
+      context: ../../
+      dockerfile: services/search_service/Dockerfile.test
+    env_file:
+      - .env.test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      wiremock:
+        condition: service_started
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: uv run pytest services/search_service/tests -v

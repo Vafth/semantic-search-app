@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/embed",
+    "bodyPatterns": [{
+      "matchesJsonPath": "$[?(@.text == 'error')]"
+    }]
+  },
+  "response": {
+    "status": 502,
+    "jsonBody": {
+      "detail": "Model service error"
+    }
+  }
+}
