@@ -6,7 +6,7 @@ pipeline {
         stage('Test search_service') {
             steps {
                 sh '''
-                    cd services/search_service
+                    cd "services/search_service"
                     docker-compose -f docker-compose.test.yaml up --build --abort-on-container-exit
                 '''
             }
@@ -17,7 +17,7 @@ pipeline {
         always {
             // Cleanup: stop and remove Postgres container
             sh '''
-                cd services/search_service
+                cd "services/search_service"
                 docker-compose -f docker-compose.test.yml down -v || true
             '''
             cleanWs()
