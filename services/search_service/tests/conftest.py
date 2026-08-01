@@ -97,10 +97,11 @@ async def client(db_session, qdrant_client):
 
 @pytest.fixture
 def search_params():
-    from schemas.search import SearchParams  # adjust import path
+    from schemas.search import SearchParams
     return SearchParams(
         query="Mars",
-        filenames=["test.txt"],
+        model="small_model",
+        filenames="test.txt",
         top_k=5,
     )
 
