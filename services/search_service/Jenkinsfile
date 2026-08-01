@@ -2,10 +2,21 @@ pipeline {
     agent any
 
     stages {
-
+        
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
         stage('Test search_service') {
             steps {
                 sh '''
+                    echo "=== Git log ===" 
+                    git log --oneline -3
+                    echo "=== Wiremock files on host ==="
+                    ls -la services/search_service/tests/wiremock/mappings/
+                    ls -la services/search_service/tests/wiremock/__files/
                     cd "services/search_service"
                     docker-compose -f docker-compose.test.yaml up --build --abort-on-container-exit
                 '''
