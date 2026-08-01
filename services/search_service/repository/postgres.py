@@ -84,4 +84,3 @@ async def delete_request_by_user(
     if obj:
         await db.delete(obj)
         await db.commit()
-    # cascade_delete=True

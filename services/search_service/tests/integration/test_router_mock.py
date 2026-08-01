@@ -1,6 +1,3 @@
-import pytest
-from httpx import HTTPError
-
 from core.config import settings
 
 
