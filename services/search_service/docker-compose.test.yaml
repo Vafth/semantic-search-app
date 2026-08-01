@@ -25,8 +25,6 @@ services:
 
   wiremock:
     image: wiremock/wiremock:3.3.1
-    env_file:
-      - .env.test
     volumes:
       - ./tests/wiremock:/home/wiremock
     command: ["--global-response-templating"]
@@ -44,7 +42,3 @@ services:
         condition: service_healthy
       wiremock:
         condition: service_started
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: uv run pytest services/search_service/tests -v
