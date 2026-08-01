@@ -5,7 +5,7 @@ pipeline {
         POSTGRES_USER = 'admin'
         POSTGRES_PASSWORD = 'password123'
         POSTGRES_DB = 'project_db_test'
-        POSTGRES_HOST = 'postgres'
+        POSTGRES_HOST = 'postgres-test'
         POSTGRES_PORT = '5432'
         DATABASE_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
     }
