@@ -11,6 +11,20 @@ pipeline {
     }
 
     stages {
+
+        stage('Debug Docker env') {
+            steps {
+                sh '''
+                    echo "DOCKER_HOST=$DOCKER_HOST"
+                    echo "DOCKER_CERT_PATH=$DOCKER_CERT_PATH"
+                    echo "DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY"
+                    which docker
+                    docker version
+                    ls -la /certs/client/ 2>/dev/null || echo "No certs dir"
+                '''
+            }
+        }
+
         stage("Checkout") {
             steps {
                 script {
