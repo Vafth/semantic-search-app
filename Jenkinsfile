@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    triggers {
-
-    }
-
     environment {
         POSTGRES_USER = 'admin'
         POSTGRES_PASSWORD = 'password123'
