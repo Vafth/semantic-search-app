@@ -12,7 +12,7 @@ COPY services/search_service ./services/search_service
 RUN sed -i 's|\"./services/model_service\",||g; s|\"./services/document_service\",||g; s|\"./services/gateway_service\",||g; s|\"./services/user_service\",||g' pyproject.toml
 
 # 4. Test config
-COPY .env.test ./
+COPY .env.test .env
 
 # 5. Install
 RUN uv sync --package search_service --package semantic_search_app --group dev

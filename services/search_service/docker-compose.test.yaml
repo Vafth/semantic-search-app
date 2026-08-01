@@ -3,8 +3,10 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    env_file:
-      - .env.test
+    environment:
+      POSTGRES_DB: project_db_test
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-project_db_test}"]
       interval: 10s
@@ -14,8 +16,9 @@ services:
 
   qdrant:
     image: qdrant/qdrant:v1.17.0
-    env_file:
-      - .env.test
+    environment:
+      - QDRANT__TELEMETRY_DISABLED=true
+      - QDRANT__SERVICE__MAX_WORKERS=2
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/${QDRANT_PORT:-6333}'"]
       interval: 10s
@@ -33,10 +36,6 @@ services:
     build:
       context: ../../
       dockerfile: services/search_service/Dockerfile.test
-    env_file:
-      - .env.test
-    environment:
-      - ENV_FILE=.env.test
     depends_on:
       postgres:
         condition: service_healthy
