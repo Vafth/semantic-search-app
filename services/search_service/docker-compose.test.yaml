@@ -35,6 +35,8 @@ services:
       dockerfile: services/search_service/Dockerfile.test
     env_file:
       - .env.test
+    environment:
+      - ENV_FILE=.env.test
     depends_on:
       postgres:
         condition: service_healthy
