@@ -12,13 +12,6 @@ pipeline {
         stage('Test search_service') {
             steps {
                 sh '''
-                    # Create a symlink to the wiremock dir using a path with no spaces
-                    WIREMOCK_LINK="/tmp/wiremock_$$"
-                    ln -sfn "$(pwd)/services/search_service/tests/wiremock" "$WIREMOCK_LINK"
-                    echo "Symlink: $WIREMOCK_LINK -> $(readlink $WIREMOCK_LINK)"
-                    ls -la "$WIREMOCK_LINK/mappings/"
-
-                    export WIREMOCK_DIR="$WIREMOCK_LINK"
                     cd services/search_service
                     docker-compose -f docker-compose.test.yaml up --build --abort-on-container-exit
                 '''
