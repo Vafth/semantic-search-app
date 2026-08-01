@@ -36,11 +36,6 @@ services:
     build:
       context: ../../
       dockerfile: services/search_service/Dockerfile.test
-    environment:
-      - POSTGRES_URL=postgresql+asyncpg://admin:password123@postgres:5432/project_db_test
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - MODEL_SERVICE_URL=http://wiremock:8080
     depends_on:
       postgres:
         condition: service_healthy
