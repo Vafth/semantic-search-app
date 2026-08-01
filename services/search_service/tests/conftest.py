@@ -1,5 +1,6 @@
 import pytest
 import os
+import uuid
 
 from httpx import AsyncClient, ASGITransport
 from sqlmodel import SQLModel
@@ -7,7 +8,7 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams, Distance
+from qdrant_client.models import VectorParams, Distance, PointStruct
 
 from main import app
 from database import get_async_session
@@ -102,3 +103,18 @@ def search_params():
         deep=True,
         deep_min=0.0
     )
+
+@pytest.fixture
+def one_point():
+    return [
+        PointStruct(
+            id      = str(uuid.uuid4()),
+            vector  = [0.1] * 384,
+            payload = {
+                "text":        "Mars is the red planet",
+                "filename":    "test.txt",
+                "document_id": 1,
+                "chunk_index": 0,
+            }
+        )
+    ]
