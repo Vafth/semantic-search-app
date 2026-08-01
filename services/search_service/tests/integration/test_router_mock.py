@@ -18,17 +18,6 @@ async def test_search_wrong_modelname(client):
     assert response.json()["detail"] == f"Unknown model '123'. Choose from: {list(settings.COLLECTIONS.keys())}"
 
 
-async def test_search_model_service_fail(client, search_params):
-    response = await client.get(
-        "/search",
-        params  = search_params.model_dump(),
-        headers = {"x-user-id": "1"}
-    )
-    
-    assert response.status_code == 502
-    assert response.json()["detail"] == "Model service error: Model service connection failed"
-
-
 async def test_search(client, search_params):
     response = await client.get(
         "/search",

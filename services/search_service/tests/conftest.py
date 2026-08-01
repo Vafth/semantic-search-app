@@ -212,7 +212,6 @@ async def search_with_multiple_points(seed_factory, multiple_points, search_para
 
 @pytest.fixture
 async def client_with_search(client, search_params):
-    # WireMock at MODEL_SERVICE_URL returns 384-dim embedding automatically
     await client.get(
         "/search",
         params=search_params.model_dump(),
