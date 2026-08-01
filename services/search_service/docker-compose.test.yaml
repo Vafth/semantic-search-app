@@ -26,11 +26,21 @@ services:
       retries: 5
       start_period: 15s
 
-  wiremock:
-    image: wiremock/wiremock:3.3.1
-    volumes:
-      - ./tests/wiremock:/home/wiremock
-    command: ["--global-response-templating"]
+wiremock:
+  image: wiremock/wiremock:3.3.1
+  volumes:
+    - ./tests/wiremock:/home/wiremock
+  command: >
+    sh -c "
+      echo '=== /home/wiremock ===' &&
+      ls -la /home/wiremock/ &&
+      echo '=== /home/wiremock/mappings ===' &&
+      ls -la /home/wiremock/mappings/ 2>/dev/null || echo 'NO MAPPINGS DIR' &&
+      echo '=== /home/wiremock/__files ===' &&
+      ls -la /home/wiremock/__files/ 2>/dev/null || echo 'NO __FILES DIR' &&
+      echo '=== Starting WireMock ===' &&
+      java -jar /var/wiremock/lib/wiremock-standalone.jar --root-dir /home/wiremock --global-response-templating --verbose
+    "
 
   tests:
     build:
