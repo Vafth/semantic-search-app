@@ -29,7 +29,7 @@ services:
   wiremock:
     image: wiremock/wiremock:3.3.1
     volumes:
-      - ${WIREMOCK_DIR}:/home/wiremock
+      - "${WIREMOCK_DIR}:/home/wiremock"
 
   tests:
     build:
