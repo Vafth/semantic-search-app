@@ -3,13 +3,11 @@
     "method": "POST",
     "url": "/embed",
     "bodyPatterns": [{
-      "matchesJsonPath": "$[?(@.text == 'error')]"
+      "matchesJsonPath": "$[?(@.model == 'error')]"
     }]
   },
   "response": {
     "status": 502,
-    "jsonBody": {
-      "detail": "Model service error"
-    }
+    "jsonBody": {"detail": "Model service error"}
   }
 }

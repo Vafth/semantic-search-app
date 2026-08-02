@@ -26,8 +26,8 @@ services:
 
   wiremock:
     build:
-      context: .
-      dockerfile: Dockerfile.wiremock
+      context: ../../
+      dockerfile: wiremock/Dockerfile.wiremock
     command: --global-response-templating --verbose
 
   tests:

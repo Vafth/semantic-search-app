@@ -24,6 +24,12 @@ services:
       retries: 5
       start_period: 15s
 
+  wiremock:
+    build:
+      context: ../../
+      dockerfile: wiremock/Dockerfile.wiremock
+    command: --global-response-templating --verbose
+
   tests:
     build:
       context: ../../
@@ -35,3 +41,5 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_healthy
+      wiremock:
+        condition: service_started
