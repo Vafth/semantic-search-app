@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }        
+
+        stage('Test search_service') {
+            steps {
+                sh '''
+                    cd services/document_service
+                    docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            // Cleanup
+            sh '''
+                cd "services/document_service"
+                docker-compose -f docker-compose.test.yml down -v || true
+            '''
+            cleanWs()
+        }
+    }
+}

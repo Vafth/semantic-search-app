@@ -8,9 +8,7 @@ from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams, Distance
-import qdrant as qdrant_module 
-from qdrant_client.models import PointStruct
+from qdrant_client.models import VectorParams, Distance, PointStruct
 
 from main import app
 from core.config import settings
@@ -38,19 +36,22 @@ async def engine():
         await conn.run_sync(SQLModel.metadata.drop_all)
     await engine.dispose()
 
+
 @pytest.fixture
 async def db_session(engine):
     async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
         await session.rollback()
 
+
+# ── Qdrant ──────────────────────────────────────────────────────────────────
+
 @pytest.fixture
 def qdrant_client():
-    client = QdrantClient(":memory:")
-    
-    # create test collections
+    client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
+
     for model_name, cfg in settings.COLLECTIONS.items():
-        client.create_collection(
+        client.recreate_collection(
             collection_name=cfg["collection"],
             vectors_config=VectorParams(
                 size=cfg["vector_size"],
@@ -58,7 +59,6 @@ def qdrant_client():
             ),
         )
     yield client
-
     client.close()
 
 
@@ -76,9 +76,6 @@ async def client(db_session, qdrant_client):
     app.dependency_overrides[get_async_session] = override_get_session
     app.dependency_overrides[get_qdrant_client] = override_get_qdrant
 
-    # inject into the global
-    qdrant_module._client = qdrant_client
-
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test",
@@ -86,35 +83,23 @@ async def client(db_session, qdrant_client):
         yield ac
 
     app.dependency_overrides.clear()
-    qdrant_module._client = None
 
-@pytest.fixture
-async def client_with_file(client):
-    with patch("routers.document.index_document"):
-        response = await client.post(
-            "/upload",
-            files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
-            headers={"x-user-id": "1", "x-user-role": "user"}
-        )
 
-    return client
-
-# ── Seed data ─────────────────────────────────────────────────────────────────
+# ── Document fixtures ─────────────────────────────────────────────────────────
 
 @pytest.fixture
 def new_document():
     return DocumentCreate(
         filename="test.txt",
         file_size=20,
-        content_type="text/html",
+        content_type="text/plain",
     )
+
 
 @pytest.fixture
 async def session_with_document(db_session, new_document):
     db_document = await create_document(db_session, new_document, 1)
-    
     assert db_document.status == "processing"
-    
     return db_session
 
 
@@ -127,15 +112,31 @@ async def seeded_qdrant_client(qdrant_client):
         doc_id=1,
         filename="test.txt",
         model_name=list(settings.COLLECTIONS.keys())[0],
-        cfg=settings.COLLECTIONS["small_model"],
+        cfg=settings.COLLECTIONS[list(settings.COLLECTIONS.keys())[0]],
     )
     return qdrant_client
 
-# ── Mocks ────────────────────────────────────────────────────────────────────
+
+# ── Client with uploaded file (WireMock handles /embed) ──────────────────────
+
+@pytest.fixture
+async def client_with_file(client):
+    # If index_document calls the model service, WireMock now handles it.
+    # Remove the patch if you want to test the full indexing flow.
+    response = await client.post(
+        "/upload",
+        files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
+        headers={"x-user-id": "1", "x-user-role": "user"},
+    )
+    assert response.status_code == 201  # or whatever your upload returns
+    return client
+
+
+# ── External service mocks (keep only if user-service is NOT in compose) ─────
 
 @pytest.fixture(autouse=True)
 def mock_user_service_requests():
-    
+    """Mock calls to user-service if it's not running in the test compose."""
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"storage_used": 0}
@@ -143,24 +144,9 @@ def mock_user_service_requests():
     original_send = AsyncClient.send
 
     async def mock_send(self, request, *args, **kwargs):
-        # If the request is targeting an external service (like user-service), return mock
         if "internal" in str(request.url) or "user" in str(request.url):
             return mock_response
-        # Otherwise, pass through to ASGI test client
         return await original_send(self, request, *args, **kwargs)
 
     with patch.object(AsyncClient, "send", new=mock_send):
         yield
-
-
-@pytest.fixture
-def mock_index_document():
-    with patch("routers.document.index_document") as m:
-        m.return_value = None
-        yield m
-
-@pytest.fixture
-def mock_get_embeddings():
-    with patch("core.processor.get_embeddings") as m:
-        m.return_value = None
-        yield m
