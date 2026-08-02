@@ -8,14 +8,17 @@ pipeline {
                 checkout scm
             }
         }        
+
         stage('Test search_service') {
+            environment {
+                HOME = '/tmp'
+            }
             steps {
                 sh '''
-                    echo "=== Test raw HTTP to dind ==="
-                    curl -s http://docker:2375/_ping
-                    echo ""
-                    echo "=== Docker info ==="
+                    echo "HOME=$HOME"
                     docker info
+                    cd services/search_service
+                    docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
                 '''
             }
         }
