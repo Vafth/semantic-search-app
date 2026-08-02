@@ -10,15 +10,8 @@ pipeline {
         }        
 
         stage('Test search_service') {
-            environment {
-                HOME = '/tmp'
-            }
             steps {
                 sh '''
-                    mkdir -p /tmp/.docker
-                    echo '{}' > /tmp/.docker/config.json
-                    echo "HOME=$HOME"
-                    docker info
                     cd services/search_service
                     docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
                 '''
