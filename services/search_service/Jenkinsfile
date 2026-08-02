@@ -17,9 +17,7 @@ pipeline {
                     cd services/search_service
                     docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
                 '''
-            }
-            
-            steps {
+
                 sh '''
                     cd services/search_service
                     docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
