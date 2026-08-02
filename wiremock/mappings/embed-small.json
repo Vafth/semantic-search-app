@@ -1,7 +1,10 @@
 {
   "request": {
     "method": "POST",
-    "url": "/embed"
+    "url": "/embed",
+    "bodyPatterns": [{
+      "matchesJsonPath": "$[?(@.model == 'small_model')]"
+    }]
   },
   "response": {
     "status": 200,

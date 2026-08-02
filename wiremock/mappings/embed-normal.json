@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/embed",
+    "bodyPatterns": [{
+      "matchesJsonPath": "$[?(@.model == 'normal_model')]"
+    }]
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "embed-768.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
