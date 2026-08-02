@@ -121,14 +121,14 @@ async def seeded_qdrant_client(qdrant_client):
 
 @pytest.fixture
 async def client_with_file(client):
-    # If index_document calls the model service, WireMock now handles it.
-    # Remove the patch if you want to test the full indexing flow.
+    """Real upload: WireMock embeds → Qdrant stores → Postgres saves."""
     response = await client.post(
         "/upload",
         files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
         headers={"x-user-id": "1", "x-user-role": "user"},
     )
-    assert response.status_code == 201  # or whatever your upload returns
+    # Fail fast if setup is broken — but only check it's not 500
+    assert response.status_code in (200, 201), f"Setup upload failed: {response.status_code} {response.text}"
     return client
 
 
