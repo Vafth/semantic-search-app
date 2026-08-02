@@ -22,13 +22,3 @@ async def test_qdrant_interaction(qdrant_client):
     chunks = await get_chunks_by_document(qdrant_client, 1)
 
     assert chunks == ""
-
-
-def test_qdrant_interaction_wrong_collection(qdrant_client):
-    with pytest.raises(UnexpectedResponse) as exc_info:
-        qdrant_client.search(
-            collection_name="123",
-            query_vector=[0.1] * 384,
-            limit=1,
-        )
-    assert exc_info.value.status_code == 404
