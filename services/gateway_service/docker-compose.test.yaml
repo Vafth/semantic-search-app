@@ -5,10 +5,3 @@ services:
       dockerfile: services/search_service/Dockerfile.test
     env_file:
       - ../../.env.test
-    depends_on:
-      postgres:
-        condition: service_healthy
-      qdrant:
-        condition: service_healthy
-      wiremock:
-        condition: service_started
