@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/internal/storage/988",
+    "bodyPatterns": [{
+      "matchesJsonPath": "$[?(@.model == 'error')]"
+    }]
+  },
+  "response": {
+    "status": 503,
+    "headers": { "Content-Type": "application/json" },
+    "body": "{\"detail\": \"service unavailable\"}"
+  }
+}

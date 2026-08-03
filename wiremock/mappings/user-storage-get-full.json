@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/internal/storage/999"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "body": "{\"storage_used\": 999999999}"
+  }
+}

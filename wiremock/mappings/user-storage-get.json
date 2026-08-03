@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/internal/storage/*"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "body": "{\"user_storage\": 0}"
+  }
+}
