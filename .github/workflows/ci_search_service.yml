@@ -16,14 +16,14 @@ jobs:
     steps:
       
       - uses: actions/checkout@v4
-      
+
       - name: Run tests
         run: |
           cd services/search_service
-          docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
-      
+          docker compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
+
       - name: Cleanup
         if: always()
         run: |
           cd services/search_service
-          docker-compose -f docker-compose.test.yaml down -v
+          docker compose -f docker-compose.test.yaml down -v
