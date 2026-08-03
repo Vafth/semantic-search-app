@@ -107,7 +107,6 @@ async def upload(
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
 
-
 @router.get("/documents",response_model=list[DocumentRead])
 async def list_documents(
     db:        AsyncSessionDep,

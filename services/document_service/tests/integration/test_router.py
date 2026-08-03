@@ -157,3 +157,86 @@ async def test_delete_doc(client_with_file):
     
     assert response.status_code == 200
     assert response.json()["message"] == "Document deleted successfully."
+
+
+# ── Storage limit checks ──────────────────────────────────────────────────────
+
+async def test_upload_owner_role_skips_storage_check(client):
+    # owner → limit = -1 → skips GET /internal/storage entirely
+    response = await client.post(
+        "/upload",
+        files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
+        headers={"x-user-id": "1", "x-user-role": "owner"}
+    )
+    assert response.status_code == 200
+
+
+async def test_upload_storage_service_unavailable(client):
+    # user 998 → WireMock returns 503 → raises 503
+    response = await client.post(
+        "/upload",
+        files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
+        headers={"x-user-id": "998", "x-user-role": "user"}
+    )
+    assert response.status_code == 503
+    assert "Could not verify storage usage" in response.json()["detail"]
+
+
+async def test_upload_storage_limit_exceeded(client):
+    # user 999 → WireMock returns storage_used: 999999999 → 413
+    response = await client.post(
+        "/upload",
+        files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
+        headers={"x-user-id": "999", "x-user-role": "user"}
+    )
+    assert response.status_code == 413
+    body = response.json()["detail"]
+    assert body["code"] == "storage_limit_exceeded"
+    assert "storage_used" in body
+    assert "storage_limit" in body
+    assert "file_size" in body
+
+
+# ── Success path with storage update ──────────────────────────────────────────
+
+async def test_upload_success_patches_storage(client):
+    response = await client.post(
+        "/upload",
+        files={"file": ("test.txt", b"Mars is a red planet.", "text/plain")},
+        headers={"x-user-id": "1", "x-user-role": "user"}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["message"] == "Document indexed successfully."
+    assert isinstance(body["document_id"], int)
+    assert body["chunks_stored"] > 0
+
+
+# ── get_document_text success ─────────────────────────────────────────────────
+
+async def test_get_doc_text_success(client_with_file):
+    response = await client_with_file.get(
+        "/document/test.txt/text",
+        headers={"x-user-id": "1"}
+    )
+    assert response.status_code == 200
+    assert response.json()["filename"] == "test.txt"
+    assert response.json()["text"] != ""
+
+
+# ── delete success with storage update ────────────────────────────────────────
+
+async def test_delete_doc_success_patches_storage(client_with_file):
+    response = await client_with_file.delete(
+        "/document/test.txt",
+        headers={"x-user-id": "1"}
+    )
+    assert response.status_code == 200
+    assert response.json()["message"] == "Document deleted successfully."
+
+    # verify removed from postgres
+    list_response = await client_with_file.get(
+        "/documents",
+        headers={"x-user-id": "1"}
+    )
+    assert len(list_response.json()) == 0

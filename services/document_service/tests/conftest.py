@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
 
 from httpx import AsyncClient, ASGITransport
 
@@ -130,23 +129,3 @@ async def client_with_file(client):
     # Fail fast if setup is broken — but only check it's not 500
     assert response.status_code in (200, 201), f"Setup upload failed: {response.status_code} {response.text}"
     return client
-
-
-# ── External service mocks (keep only if user-service is NOT in compose) ─────
-
-@pytest.fixture(autouse=True)
-def mock_user_service_requests():
-    """Mock calls to user-service if it's not running in the test compose."""
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = {"storage_used": 0}
-
-    original_send = AsyncClient.send
-
-    async def mock_send(self, request, *args, **kwargs):
-        if "internal" in str(request.url) or "user" in str(request.url):
-            return mock_response
-        return await original_send(self, request, *args, **kwargs)
-
-    with patch.object(AsyncClient, "send", new=mock_send):
-        yield
