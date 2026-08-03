@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "PATCH",
-    "url": "/internal/storage/*"
+    "url": "/internal/storage/.*"
   },
   "response": {
     "status": 200,

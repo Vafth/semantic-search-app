@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "url": "/internal/storage/*"
+    "url": "/internal/storage/.*"
   },
   "response": {
     "status": 200,
