@@ -1,0 +1,29 @@
+name: CI - search_service
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'services/search_service/**'
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'services/search_service/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      
+      - uses: actions/checkout@v4
+      
+      - name: Run tests
+        run: |
+          cd services/search_service
+          docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          cd services/search_service
+          docker-compose -f docker-compose.test.yaml down -v

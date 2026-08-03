@@ -24,7 +24,7 @@ pipeline {
             // Cleanup
             sh '''
                 cd "services/search_service"
-                docker-compose -f docker-compose.test.yml down -v || true
+                docker-compose -f docker-compose.test.yaml down -v || true
             '''
             cleanWs()
         }
