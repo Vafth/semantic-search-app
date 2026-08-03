@@ -65,6 +65,7 @@ async def test_user(client):
     assert response.status_code == 201
     return response.json()
 
+
 @pytest.fixture
 async def auth_token(client, test_user):
     response = await client.post("/login", data={
