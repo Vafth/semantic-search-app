@@ -27,16 +27,19 @@ async def engine():
         await conn.run_sync(SQLModel.metadata.drop_all)
     await engine.dispose()
 
+
 @pytest.fixture
 async def db_session(engine):
     async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
         await session.rollback()
 
+
 # ── App client ────────────────────────────────────────────────────────────────
 
 @pytest.fixture
 async def client(db_session):
+
     async def override_get_session():
         yield db_session
 
@@ -49,6 +52,7 @@ async def client(db_session):
         yield ac
 
     app.dependency_overrides.clear()
+
 
 # ── Seed data ─────────────────────────────────────────────────────────────────
 

@@ -8,7 +8,6 @@ async def test_user_verify(client, test_user):
 
 
 async def test_user_verify_not_found(client, test_user):
-    
     response = await client.get("/internal/verify/99")
     
     assert response.status_code == 404

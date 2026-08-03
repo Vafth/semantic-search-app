@@ -9,11 +9,11 @@ pipeline {
             }
         }        
 
-        stage('Test document_service') {
+        stage('Test user_service') {
             steps {
                 sh '''
-                    cd services/document_service
-                    docker-compose -f docker-compose.test.yaml --env-file .env.test up --build --abort-on-container-exit
+                    cd services/user_service
+                    docker-compose -f docker-compose.test.yaml up --build --abort-on-container-exit
                 '''
             }
         }
@@ -23,7 +23,7 @@ pipeline {
         always {
             // Cleanup
             sh '''
-                cd "services/document_service"
+                cd "services/user_service"
                 docker-compose -f docker-compose.test.yml down -v || true
             '''
             cleanWs()
