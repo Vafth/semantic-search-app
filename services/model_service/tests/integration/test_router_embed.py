@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 # ── embed ─────────────────────────────────────────────────────────────────────
 
 async def test_embed_unloaded_model(client, embed_request_unloaded_model):

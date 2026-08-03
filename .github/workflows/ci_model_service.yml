@@ -1,17 +1,17 @@
-name: CI - user_service
+name: CI - model_service
 
 on:
   push:
     branches: [develop]
     paths:
-      - 'services/user_service/**'
+      - 'services/model_service/**'
       - 'services/common/**'
-      - '.github/workflows/ci_user_service.yml'
+      - '.github/workflows/ci_model_service.yml'
 
   pull_request:
     branches: [develop]
     paths:
-      - 'services/user_service/**'
+      - 'services/model_service/**'
       - 'services/common/**'
 
 jobs:
@@ -23,11 +23,11 @@ jobs:
 
       - name: Run tests
         run: |
-          cd services/user_service
+          cd services/model_service
           docker compose -f docker-compose.test.yaml up --build --abort-on-container-exit
 
       - name: Cleanup
         if: always()
         run: |
-          cd services/user_service
+          cd services/model_service
           docker compose -f docker-compose.test.yaml down -v

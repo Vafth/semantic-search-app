@@ -1,0 +1,8 @@
+services:
+
+  tests:
+    build:
+      context: ../../
+      dockerfile: services/model_service/Dockerfile.test
+    env_file:
+      - ../../.env.test

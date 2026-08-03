@@ -7,6 +7,7 @@ from httpx import AsyncClient, ASGITransport
 from main import app
 from routers.embed import EmbedRequest
 
+
 # ── App client ────────────────────────────────────────────────────────────────
 
 @pytest.fixture
@@ -17,6 +18,7 @@ async def client():
         base_url  = "http://test",
     ) as ac:
         yield ac
+
 
 @pytest.fixture(autouse=True)
 def mock_models():
@@ -30,6 +32,7 @@ def mock_models():
     
     manager.models = {}
 
+
 @pytest.fixture()
 def embed_request():
     return EmbedRequest(
@@ -37,6 +40,7 @@ def embed_request():
         texts = ["123", "123"],
         batch_size = 32
     )
+
 
 @pytest.fixture()
 def embed_request_unloaded_model():
