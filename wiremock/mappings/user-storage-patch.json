@@ -1,11 +1,11 @@
 {
   "request": {
     "method": "PATCH",
-    "url": "/internal/storage/.*"
+    "urlPathPattern": "/internal/storage/[0-9]+"
   },
   "response": {
     "status": 200,
     "headers": { "Content-Type": "application/json" },
-    "body": "{\"user_storage\": 100}"
+    "body": "{\"storage_used\": 100}"
   }
 }

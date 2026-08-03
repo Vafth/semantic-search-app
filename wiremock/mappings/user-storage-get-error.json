@@ -1,10 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "url": "/internal/storage/988",
-    "bodyPatterns": [{
-      "matchesJsonPath": "$[?(@.model == 'error')]"
-    }]
+    "url": "/internal/storage/998"
   },
   "response": {
     "status": 503,

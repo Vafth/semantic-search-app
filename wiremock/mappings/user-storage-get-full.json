@@ -1,7 +1,7 @@
 {
   "request": {
     "method": "GET",
-    "urlPattern": "/internal/storage/999"
+    "url": "/internal/storage/999"
   },
   "response": {
     "status": 200,

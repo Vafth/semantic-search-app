@@ -1,11 +1,11 @@
 {
   "request": {
     "method": "GET",
-    "url": "/internal/storage/.*"
+    "urlPathPattern": "/internal/storage/[0-9]+"
   },
   "response": {
     "status": 200,
     "headers": { "Content-Type": "application/json" },
-    "body": "{\"user_storage\": 0}"
+    "body": "{\"storage_used\": 0}"
   }
 }
