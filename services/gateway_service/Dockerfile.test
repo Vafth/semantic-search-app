@@ -1,0 +1,20 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# Workspace config
+COPY pyproject.toml uv.lock ./
+COPY services/common ./services/common
+COPY services/gateway_service ./services/gateway_service
+
+RUN sed -i 's|\"./services/model_service\",||g; s|\"./services/document_service\",||g; s|\"./services/search_service\",||g; s|\"./services/user_service\",||g' pyproject.toml
+
+# 4. Test config
+COPY .env.test .env
+
+# 5. Install
+RUN uv sync --package gateway_service --package semantic_search_app --group dev
+
+CMD ["uv", "run", "pytest", "services/gateway_service/tests", "-v"]
