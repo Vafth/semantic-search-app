@@ -2,6 +2,6 @@ services:
   tests:
     build:
       context: ../../
-      dockerfile: services/search_service/Dockerfile.test
+      dockerfile: services/gateway_service/Dockerfile.test
     env_file:
       - ../../.env.test
