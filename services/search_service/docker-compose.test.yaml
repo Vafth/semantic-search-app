@@ -4,7 +4,7 @@ services:
     env_file:
       - ../../.env.test
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-project_db_test}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -15,7 +15,7 @@ services:
     env_file:
       - ../../.env.test
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/${QDRANT_PORT:-6333}'"]
+      test: ["CMD-SHELL", "bash -c 'cat /dev/null > /dev/tcp/localhost/$$QDRANT_PORT'"]
       interval: 10s
       timeout: 5s
       retries: 5
