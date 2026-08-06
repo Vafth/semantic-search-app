@@ -7,17 +7,25 @@ variable "project" {
 }
 
 
-# —— Helm ——————————————————————————————————————————————————————————————————————
+# —— Network variables —————————————————————————————————————————————————————————
 
-variable "release_name" {
+variable "region" {
   type        = string
-  description = "Helm release name"
+  description = "GCP Region where our VPC would be"
+  default     = "us-west1"
 }
 
-variable "chart_path" {
+variable "zone" {
   type        = string
-  description = "Path to the Helm chart directory"
-} 
+  description = "GCP Zone where our VPC would be"
+  default     = "us-west1-a"
+}
+
+variable "subnet_cidr" {
+  type        = string
+  description = "CIDR of the public subnet"
+  default     = "10.0.0.0/16"
+}
 
 
 # —— App ———————————————————————————————————————————————————————————————————————
@@ -53,28 +61,7 @@ variable "OWNER_USERNAME" {
 }
 
 
-# —— Network variables —————————————————————————————————————————————————————————
-
-variable "region" {
-  type        = string
-  description = "GCP Region where our VPC would be"
-  default     = "us-west1"
-}
-
-variable "zone" {
-  type        = string
-  description = "GCP Zone where our VPC would be"
-  default     = "us-west1-a"
-}
-
-variable "subnet_cidr" {
-  type        = string
-  description = "CIDR of the public subnet"
-  default     = "10.0.0.0/16"
-}
-
-
-# —— GKE Variables —————————————————————————————————————————————————————————————
+# —— GCP Variables —————————————————————————————————————————————————————————————
 
 variable "cluster_name" {
   type        = string
@@ -91,5 +78,4 @@ variable "init_node_count" {
 variable "machine_type" {
   type        = string
   description = "Node VM type"
-  default     = "e2-micro"
 }

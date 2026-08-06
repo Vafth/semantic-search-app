@@ -1,4 +1,18 @@
+project           = ""
+region            = "us-west1"
+zone              = "us-west1-a"
+cluster_name      = "semantic-search"
+machine_type      = "e2-standard-2"
+init_node_count   = 1
+subnet_cidr       = "10.0.0.0/24"
+
+release_name      = "semantic-search"
+chart_path        = "../helm"
+
+postgres_db       = "db"
+postgres_user     = "admin"
 postgres_password = "password"
-secret_key = "your_secret_key"
-OWNER_USERNAME = "owner"
-OWNER_PASSWORD = "owner_password"
+
+secret_key        = ""
+OWNER_USERNAME    = "owner_username"
+OWNER_PASSWORD    = "owner_password"

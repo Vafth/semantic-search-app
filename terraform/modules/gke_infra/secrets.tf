@@ -1,4 +1,5 @@
-# postgres-secret.tf
+# —— postgres-secret.tf ————————————————————————————————————————————————————————
+
 resource "kubernetes_secret" "postgres_secret" {
   metadata {
     name      = "postgres-secret"
@@ -12,7 +13,9 @@ resource "kubernetes_secret" "postgres_secret" {
   }
 }
 
-# auth-secret.tf
+
+# —— auth-secret.tf ————————————————————————————————————————————————————————————
+
 resource "kubernetes_secret" "auth_secret" {
   metadata {
     name      = "auth-secret"

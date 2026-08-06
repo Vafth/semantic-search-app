@@ -2,7 +2,7 @@ name: CI - Build and Push
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
     paths:
       - 'services/**'
       - '.github/workflows/ci.yml'
@@ -47,9 +47,6 @@ jobs:
             image: semantic-search-app-search
 
     steps:
-      - name: Set lowercase owner
-        run: |
-          echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -82,10 +79,6 @@ jobs:
       
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set lowercase owner
-        run: |
-          echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       
       - name: Install yq
         run: sudo snap install yq
