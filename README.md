@@ -7,7 +7,7 @@ relevant content using dense embeddings.
 
 Supports three IBM Granite embedding models (small English, normal English, multilingual),
 optional sentence-level result refinement, and deep search for borderline chunks.
-Deployable locally via Docker Compose or in a Kubernetes cluster via Minikube.
+Deployable locally via Docker Compose, in a Kubernetes cluster via Minikube, or on GCP GKE.
 
 ---
 
@@ -175,18 +175,19 @@ A confirmation message appears inline on success.
 
 - [uv](https://github.com/astral-sh/uv) — Python package manager
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Minikube](https://minikube.sigs.k8s.io/) _(for Kubernetes deployment)_
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) _(for Kubernetes deployment)_
+- [Minikube](https://minikube.sigs.k8s.io/) _(for Minikube deployment)_
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) _(for Kubernetes deployments)_
 - [Terraform](https://developer.hashicorp.com/terraform) _(for infrastructure provisioning)_
 - [Helm](https://helm.sh/) _(for Kubernetes package management)_
 - [ArgoCD](https://argo-cd.readthedocs.io/en/stable/) _(for GitOps deployment)_
+- [gcloud CLI](https://cloud.google.com/sdk/docs/install) _(for GCP deployment)_
 
 ---
 
 ## Running the Project
 
 <details>
-<summary>Option 1 — Local Development (Docker Compose)</summary>
+<summary>Option 1: Local Development (Docker Compose)</summary>
 
 #### Prerequisites
 
@@ -200,11 +201,9 @@ Copy the example environment file:
 cp .env.example .env
 ```
 
-> Modify secret keys and database credentials inside .env
+> Modify secret keys and database credentials inside `.env`
 
 #### 2. Start Services
-
-Run Docker Compose to build and start all microservices:
 
 ```bash
 docker compose up --build -d
@@ -217,50 +216,28 @@ Open your browser and navigate to `http://localhost:8080`.
 </details>
 
 <details>
-<summary>Option 2 — Kubernetes Deployment (GitOps with ArgoCD)</summary>
+<summary>Option 2: GCP GKE</summary>
 
 #### Prerequisites
 
-- Minikube
-- kubectl
-- Helm
-- Terraform
-- ArgoCD
+- gcloud CLI (authenticated), kubectl, Terraform, Helm
 
-#### 1. Start Minikube
+#### 1. Authenticate with GCP
 
 ```bash
-minikube start
+gcloud auth application-default login
+gcloud config set project <your-project-id>
 ```
 
-#### 2. Install & Expose ArgoCD
-
-Create the ArgoCD namespace and install the controller:
-
-```bash
-kubectl create namespace argocd
-kubectl apply -n argocd -f [https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml)
-```
-
-Expose the ArgoCD server UI:
-
-```bash
-kubectl port-forward svc/argocd-server -n argocd 8888:443
-```
-
-> Access ArgoCD at https://localhost:8888
-
-#### 3. Provision Infrastructure with Terraform
-
-Copy the example Terraform variables file:
+#### 2. Configure Terraform
 
 ```bash
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 ```
 
-> Modify secret keys, database and owner user credentials inside `terraform.tfvars`
+> Fill in your GCP project ID, region, zone, cluster name, and application secrets
 
-Initialize and apply the Terraform configuration:
+#### 3. Provision Infrastructure
 
 ```bash
 cd terraform
@@ -268,32 +245,73 @@ terraform init
 terraform apply
 ```
 
-Terraform will automatically create:
+Terraform provisions:
+- VPC, subnet, and GKE cluster
+- Node pool with configured machine type
+- Static external IP for the gateway LoadBalancer
+- Kubernetes namespace and secrets
 
-- The semantic-search Kubernetes namespace
-- Kubernetes Secrets containing database credentials and JWT secret keys
+#### 6. Access the Application
 
-#### 4. Deploy the Application via ArgoCD
-
-Apply the ArgoCD Application manifest to begin the GitOps deployment:
-
-```bash
-kubectl apply -f argocd/argocd-app.yaml -n argocd
-```
-
-**ArgoCD** will automatically pull the **Helm chart** from GitHub, deploy all microservices to the semantic-search namespace, and maintain cluster synchronization.
-
-#### 5. Access the Application
-
-Expose the gateway service to route traffic:
+The gateway is exposed via a GCP LoadBalancer. Get the external IP:
 
 ```bash
-kubectl port-forward svc/argocd-server -n argocd 8080:8080
+kubectl get service gateway -n semantic-search-ns
 ```
 
-Then open `http://localhost:8080` in your browser.
+Open `http://<EXTERNAL-IP>` in your browser.
 
 </details>
+
+---
+
+## CI/CD
+
+The project uses a dual CI/CD setup:
+
+### Jenkins (Primary)
+
+Self-hosted Jenkins running via Docker Compose with Docker-in-Docker, configured entirely as code using JCasC (Jenkins Configuration as Code).
+
+**Setup:**
+
+```bash
+cd jenkins
+docker compose up -d --build
+```
+
+Access Jenkins at `http://localhost:8080`.
+
+Copy and fill in credentials:
+
+```bash
+cp jenkins/.env.example jenkins/.env
+```
+
+```env
+JENKINS_ADMIN_PASSWORD=your_password
+GITHUB_USERNAME=your_github_username
+GITHUB_TOKEN=your_github_pat
+DOCKERHUB_USERNAME=your_dockerhub_username
+DOCKERHUB_TOKEN=your_dockerhub_token
+```
+
+**Pipelines:**
+
+| Pipeline | Trigger | Description |
+|---|---|---|
+| `services/gateway` | Manual | Build, test, report coverage |
+| `services/search_service` | Manual | Build, test, report coverage |
+| `services/document_service` | Manual | Build, test, report coverage |
+| `services/user_service` | Manual | Build, test, report coverage |
+| `services/model_service` | Manual | Build, test, report coverage |
+| `build-and-deploy` | Manual | Build all images, push to GHCR, update Helm values |
+
+Each service pipeline uses Docker Compose with real Postgres, Qdrant, and WireMock instances — no mocks for infrastructure dependencies.
+
+### GitHub Actions (Secondary)
+
+Defined in `.github/workflows/` — currently paused due to runner limits. Workflow files serve as the canonical CI definition for future cloud runner setup.
 
 ---
 
@@ -309,13 +327,13 @@ All endpoints are accessible through the gateway at `http://localhost:8080`.
 | `GET` | `/api/document/{id}/text` | Retrieve full document text |
 | `DELETE` | `/api/document/{id}` | Delete a document |
 | `GET` | `/api/search` | Semantic search |
-| `GET` | `/api/hostory` | Get whole search history |
+| `GET` | `/api/history` | Get whole search history |
 | `DELETE` | `/api/history/{id}` | Delete a history record |
 | `GET` | `/auth/me` | Get user data |
-| `PATCH` | `/auth/me/username` | Change Username |
-| `PATCH` | `/auth/me/password` | Change User Password |
+| `PATCH` | `/auth/me/username` | Change username |
+| `PATCH` | `/auth/me/password` | Change password |
 
-### Search parameters
+### Search Parameters
 
 | Parameter | Default | Description |
 | --- | --- | --- |
