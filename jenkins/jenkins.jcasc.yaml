@@ -1,0 +1,141 @@
+jenkins:
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: admin
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              id: dockerhub-credentials
+              username: "${DOCKERHUB_USERNAME}"
+              password: "${DOCKERHUB_TOKEN}"
+              description: "Docker Hub access token"
+              scope: GLOBAL
+
+          - usernamePassword:
+              id: github-credentials
+              username: "${GITHUB_USERNAME}"
+              password: "${GITHUB_TOKEN}"
+              description: "GitHub fine-grained PAT"
+              scope: GLOBAL
+
+jobs:
+  - script: >
+      folder('semantic_search_services')
+
+  - script: >
+      pipelineJob('semantic_search_services/search_service') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/kellaritonttu/semantic-search-app.git')
+                }
+                branch('*/develop')
+              }
+            }
+            scriptPath('services/search_service/Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('semantic_search_services/document_service') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/kellaritonttu/semantic-search-app.git')
+                }
+                branch('*/develop')
+              }
+            }
+            scriptPath('services/document_service/Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('semantic_search_services/user_service') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/kellaritonttu/semantic-search-app.git')
+                }
+                branch('*/develop')
+              }
+            }
+            scriptPath('services/user_service/Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('semantic_search_services/model_service') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/kellaritonttu/semantic-search-app.git')
+                }
+                branch('*/develop')
+              }
+            }
+            scriptPath('services/model_service/Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('semantic_search_services/gateway_service') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/kellaritonttu/semantic-search-app.git')
+                }
+                branch('*/develop')
+              }
+            }
+            scriptPath('services/gateway_service/Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }
+
+  - script: >
+      pipelineJob('semantic_search_services/ci') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/kellaritonttu/semantic-search-app.git')
+                }
+                branch('*/develop')
+              }
+            }
+            scriptPath('Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }

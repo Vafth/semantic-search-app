@@ -1,0 +1,50 @@
+services:
+  dind:
+    image: docker:dind
+    container_name: jenkins-docker
+    privileged: true
+    networks:
+      jenkins:
+        aliases:
+          - docker
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client
+    ports:
+      - "2376:2376"
+
+  jenkins:
+    image: myjenkins:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: jenkins
+    restart: on-failure
+    networks:
+      - jenkins
+    env_file:
+      - .env
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_TLS_VERIFY=1
+      - DOCKER_CERT_PATH=/certs/client
+      - CASC_JENKINS_CONFIG=/var/jenkins_casc/jenkins.yaml
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - jenkins-docker-certs:/certs/client:ro
+      - ./jenkins.jcasc.yaml:/var/jenkins_casc/jenkins.yaml:ro
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    depends_on:
+      - dind
+
+networks:
+  jenkins:
+    driver: bridge
+
+volumes:
+  jenkins-data:
+  jenkins-docker-certs:
