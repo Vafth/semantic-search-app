@@ -127,7 +127,7 @@ pipeline {
                         git config user.name "Jenkins"
                         git add helm/values.yaml
                         git diff --staged --quiet || git commit -m "ci: update image tags to ${GIT_SHA}"
-                        git push https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${OWNER}/semantic-search-app.git HEAD:main
+                        git push https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${OWNER}/semantic-search-app.git HEAD:develop
                     """
                 }
             }
