@@ -1,18 +1,12 @@
 name: CI - user_service
 
 on:
-  push:
+  workflow_dispatch:
     branches: [develop]
     paths:
       - 'services/user_service/**'
       - 'services/common/**'
       - '.github/workflows/ci_user_service.yml'
-
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'services/user_service/**'
-      - 'services/common/**'
 
 jobs:
   test:

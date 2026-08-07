@@ -2,99 +2,141 @@ pipeline {
     agent any
 
     environment {
-        POSTGRES_USER = 'admin'
-        POSTGRES_PASSWORD = 'password123'
-        POSTGRES_DB = 'project_db_test'
-        POSTGRES_HOST = 'postgres-test'
-        POSTGRES_PORT = '5432'
-        DATABASE_URL = "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+        OWNER               = 'kellaritonttu'
+        GIT_SHA             = "${GIT_COMMIT[0..7]}"
+        DOCKERHUB_NAMESPACE = 'harhatilatonttu'
     }
 
     stages {
 
-        stage('Debug Docker env') {
+        stage('Checkout') {
             steps {
-                sh '''
-                    echo "DOCKER_HOST=$DOCKER_HOST"
-                    echo "DOCKER_CERT_PATH=$DOCKER_CERT_PATH"
-                    echo "DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY"
-                    which docker
-                    docker version
-                    ls -la /certs/client/ 2>/dev/null || echo "No certs dir"
-                '''
+                checkout scm
             }
         }
 
-        stage("Checkout") {
+        stage('Login to Docker Hub') {
             steps {
-                script {
-                    // Start Postgres container for tests
-                    sh '''
-                        docker run -d \
-                            --name postgres-test \
-                            --network host \
-                            -e POSTGRES_USER=${POSTGRES_USER} \
-                            -e POSTGRES_PASSWORD=${POSTGRES_PASSWORD} \
-                            -e POSTGRES_DB=${POSTGRES_DB} \
-                            -p 5432:5432 \
-                            postgres:15
-                        
-                        # Wait for Postgres to be ready
-                        until docker exec postgres-test pg_isready -U ${POSTGRES_USER}; do
-                            echo "Waiting for postgres..."
-                            sleep 2
-                        done
-                    '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKERHUB_USER',
+                    passwordVariable: 'DOCKERHUB_TOKEN'
+                )]) {
+                    sh 'echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USER --password-stdin'
                 }
             }
         }
 
-        stage("Install uv") {
-            steps {
-                sh '''
-                    curl -LsSf https://astral.sh/uv/install.sh | sh
-                    export PATH="$HOME/.local/bin:$PATH"
-                    uv --version
-                '''
+        stage('Build and Push Images') {
+            parallel {
+                stage('gateway') {
+                    steps {
+                        sh """
+                            docker build \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-gateway:${GIT_SHA} \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-gateway:latest \
+                                -f services/gateway_service/Dockerfile .
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-gateway:${GIT_SHA}
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-gateway:latest
+                        """
+                    }
+                }
+                stage('user-service') {
+                    steps {
+                        sh """
+                            docker build \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-user:${GIT_SHA} \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-user:latest \
+                                -f services/user_service/Dockerfile .
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-user:${GIT_SHA}
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-user:latest
+                        """
+                    }
+                }
+                stage('document-service') {
+                    steps {
+                        sh """
+                            docker build \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-document:${GIT_SHA} \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-document:latest \
+                                -f services/document_service/Dockerfile .
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-document:${GIT_SHA}
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-document:latest
+                        """
+                    }
+                }
+                stage('search-service') {
+                    steps {
+                        sh """
+                            docker build \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-search:${GIT_SHA} \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-search:latest \
+                                -f services/search_service/Dockerfile .
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-search:${GIT_SHA}
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-search:latest
+                        """
+                    }
+                }
+                stage('model-service') {
+                    steps {
+                        sh """
+                            docker build \
+                                --build-arg TRANSFORMERS_OFFLINE=0 \
+                                --build-arg HF_DATASETS_OFFLINE=0 \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-model:${GIT_SHA} \
+                                -t ${DOCKERHUB_NAMESPACE}/semantic-search-app-model:latest \
+                                -f services/model_service/Dockerfile .
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-model:${GIT_SHA}
+                            docker push ${DOCKERHUB_NAMESPACE}/semantic-search-app-model:latest
+                        """
+                    }
+                }
             }
         }
 
-        stage("Set up Python") {
+        stage('Update Helm values') {
             steps {
-                sh '''
-                    export PATH="$HOME/.local/bin:$PATH"
-                    uv python install 3.11
-                '''
+                sh """
+                    yq eval '.gateway.image.repository = "${DOCKERHUB_NAMESPACE}/semantic-search-app-gateway"' -i helm/values.yaml
+                    yq eval '.gateway.image.tag = "${GIT_SHA}"' -i helm/values.yaml
+
+                    yq eval '.documentService.image.repository = "${DOCKERHUB_NAMESPACE}/semantic-search-app-document"' -i helm/values.yaml
+                    yq eval '.documentService.image.tag = "${GIT_SHA}"' -i helm/values.yaml
+
+                    yq eval '.userService.image.repository = "${DOCKERHUB_NAMESPACE}/semantic-search-app-user"' -i helm/values.yaml
+                    yq eval '.userService.image.tag = "${GIT_SHA}"' -i helm/values.yaml
+
+                    yq eval '.searchService.image.repository = "${DOCKERHUB_NAMESPACE}/semantic-search-app-search"' -i helm/values.yaml
+                    yq eval '.searchService.image.tag = "${GIT_SHA}"' -i helm/values.yaml
+
+                    yq eval '.modelService.image.repository = "${DOCKERHUB_NAMESPACE}/semantic-search-app-model"' -i helm/values.yaml
+                    yq eval '.modelService.image.tag = "${GIT_SHA}"' -i helm/values.yaml
+                """
             }
         }
 
-        stage('Install dependencies') {
+        stage('Commit and Push') {
             steps {
-                sh '''
-                    export PATH="$HOME/.local/bin:$PATH"
-                    uv sync --package search_service --package semantic_search_app --group dev
-                '''
-            }
-        }
-
-        stage('Run tests') {
-            steps {
-                sh '''
-                    export PATH="$HOME/.local/bin:$PATH"
-                    export DATABASE_URL=${DATABASE_URL}
-                    uv run pytest services/search_service/tests -v
-                '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'github-credentials',
+                    usernameVariable: 'GITHUB_USER',
+                    passwordVariable: 'GITHUB_TOKEN'
+                )]) {
+                    sh """
+                        git config user.email "jenkins@ci"
+                        git config user.name "Jenkins"
+                        git add helm/values.yaml
+                        git diff --staged --quiet || git commit -m "ci: update image tags to ${GIT_SHA}"
+                        git push https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com/${OWNER}/semantic-search-app.git HEAD:main
+                    """
+                }
             }
         }
     }
 
     post {
         always {
-            // Cleanup: stop and remove Postgres container
-            sh '''
-                docker stop postgres-test || true
-                docker rm postgres-test || true
-            '''
+            sh 'docker logout || true'
             cleanWs()
         }
     }

@@ -1,18 +1,12 @@
 name: CI - model_service
 
 on:
-  push:
+  workflow_dispatch:
     branches: [develop]
     paths:
       - 'services/model_service/**'
       - 'services/common/**'
       - '.github/workflows/ci_model_service.yml'
-
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'services/model_service/**'
-      - 'services/common/**'
 
 jobs:
   test:

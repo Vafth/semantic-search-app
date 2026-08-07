@@ -1,19 +1,13 @@
 name: CI - search_service
 
 on:
-  push:
+  workflow_dispatch:
     branches: [develop]
     paths:
       - 'services/search_service/**'
       - 'services/common/**'
       - '.github/workflows/ci_search_service.yml'
-
-  pull_request:
-    branches: [develop]
-    paths:
-      - 'services/search_service/**'
-      - 'services/common/**'
-
+      
 jobs:
   test:
     runs-on: ubuntu-latest

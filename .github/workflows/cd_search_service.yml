@@ -1,7 +1,7 @@
 name: CD - search_service
 
 on:
-  push:
+  workflow_dispatch:
     branches: [main]
     paths:
       - 'services/search_service/**'
