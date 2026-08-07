@@ -35,10 +35,15 @@ spec:
               path: /health
               port: {{ .Values.modelService.port }}
             initialDelaySeconds: 15
-            periodSeconds: 15
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 10
+
           livenessProbe:
             httpGet:
               path: /health
               port: {{ .Values.modelService.port }}
             initialDelaySeconds: 30
-            periodSeconds: 30
+            timeoutSeconds: 30
+            periodSeconds: 60
+            failureThreshold: 5

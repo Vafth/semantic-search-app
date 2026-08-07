@@ -5,6 +5,10 @@ gateway:
     tag: "4d932abf" # CI_GATEWAY_TAG
   port: 8080
   replicas: 1
+  service:
+    port: 80
+    targetPort: 8080
+    loadBalancerIP: ""
 documentService:
   image:
     repository: harhatilatonttu/semantic-search-app-document # CI_DOCUMENT_REPO

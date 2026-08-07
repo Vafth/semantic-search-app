@@ -1,9 +1,9 @@
 # —— GCP ———————————————————————————————————————————————————————————————————————
 
 variable "project" {
-    type        = string
-    description = "GCP Project ID"
-    sensitive   = true
+  type        = string
+  description = "GCP Project ID"
+  sensitive   = true
 }
 
 
@@ -17,7 +17,7 @@ variable "release_name" {
 variable "chart_path" {
   type        = string
   description = "Path to the Helm chart directory"
-} 
+}
 
 
 # —— App ———————————————————————————————————————————————————————————————————————
@@ -35,7 +35,7 @@ variable "postgres_user" {
 variable "postgres_password" {
   description = "PostgreSQL password"
   sensitive   = true
-} 
+}
 
 variable "secret_key" {
   description = "Secret Key for AUTH"

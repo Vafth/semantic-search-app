@@ -7,7 +7,7 @@ resource "helm_release" "helm" {
 
   
   set {
-    name = "service.loadBalancerIP"
+    name = "gateway.service.loadBalancerIP"
     value = var.load_balancer_ip
   }
 
